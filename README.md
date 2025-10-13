@@ -36,6 +36,8 @@ A lightweight Foundry VTT module for **Pathfinder 2e** that automatically popula
 
 ## Usage
 
+https://github.com/user-attachments/assets/baa277b0-2d4d-459a-91ae-8f3799421556
+
 * Create/open a **loot** actor named like a target type (e.g., “Cofre”, “Chest”, “Crate”, “Barrel”, “Bolsa/Pouch”, “Alijo/Stash”).
 * Open the sheet to auto-generate loot, or click **Roll Loot** to reroll.
 * Adjust budgets, rarity weights, stack caps, and empty chances in **Module Settings**.
