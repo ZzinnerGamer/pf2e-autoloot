@@ -16,10 +16,10 @@ A lightweight Foundry VTT module for **Pathfinder 2e** that automatically popula
 ## How loot is calculated
 
 1. Determine container type by name (Three tiers Barrel/Crate/Chest).
-   -# Based on BG3 loot rolls
+   Based on BG3 loot rolls
 2. Apply chance of being empty (config).
 3. Calculate average party level and gp budget = TotalValue(level) * budgetFraction.
-   -# Based on the [PF2e Loot table](https://2e.aonprd.com/Rules.aspx?ID=2656&Redirected=1)
+   Based on the [PF2e Loot table](https://2e.aonprd.com/Rules.aspx?ID=2656&Redirected=1)
 4. Filter candidates according to rules and cache (not too fast but its "nice").
 5. Choose X types (according to count-*), weighted by rarity.
 6. For each item chosen:
