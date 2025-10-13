@@ -23,10 +23,9 @@ A lightweight Foundry VTT module for **Pathfinder 2e** that automatically popula
 4. Filter candidates according to rules and cache (not too fast but its "nice").
 5. Choose X types (according to count-*), weighted by rarity.
 6. For each item chosen:
-
-* Read price in gp (supports { gp, sp, cp, pp }).
-* Choose quantity in 1..maxStack without exceeding the remaining budget.
-* Create items and set flags to not roll again for the container.
+   * Read price in gp (supports { gp, sp, cp, pp }).
+   * Choose quantity in 1..maxStack without exceeding the remaining budget.
+   * Create items and set flags to not roll again for the container.
 
 ## Installation
 
