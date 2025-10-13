@@ -1,0 +1,54 @@
+{
+  "PF2EAUTOLOOT.Settings.Title": "PF2e Autoloot",
+  "pf2e-autoloot.settings.autoloot.name": "Auto Roll for loot by actor name",
+  "pf2e-autoloot.settings.autoloot.hint": "Each time a loot actor token with the names assigned below is opened, the loot will be automatically distributed without GM intervention.",
+
+  "pf2e-autoloot.settings.avoidNamesRegex.name": "Avoid items",
+  "pf2e-autoloot.settings.avoidNamesRegex.hint": "If you need an item to not appear in the item roll, write its slug here like this. Ex: (?:endless-quiver|rusting-ammunition-greater|etc)",
+
+  "pf2e-autoloot.settings.name-key.barrel.name": "Container name for Barrels",
+  "pf2e-autoloot.settings.name-key.crate.name": "Container name for Crates",
+  "pf2e-autoloot.settings.name-key.chest.name": "Container name for Chests",
+  "pf2e-autoloot.settings.name-key.pouch.name": "Container name for Pouhes",
+  "pf2e-autoloot.settings.name-key.hint": "Regular expression (case insensitive)",
+
+  "pf2e-autoloot.settings.empty-key.barrel.name": "Probability of being empty (0–100%) for Barrels",
+  "pf2e-autoloot.settings.empty-key.crate.name": "Probability of being empty (0–100%) for Crates",
+  "pf2e-autoloot.settings.empty-key.chest.name": "Probability of being empty (0–100%) for Chests",
+  "pf2e-autoloot.settings.empty-key.pouch.name": "Probability of being empty (0–100%) for Pouhes",
+  "pf2e-autoloot.settings.empty-key.stash.name": "Probability of being empty (0–100%) for Stashes",
+  "pf2e-autoloot.settings.empty-key.hint": "Probability that the container has nothing.",
+
+  "pf2e-autoloot.settings.count-key.barrel.name": "Item types (min,max) for Barrels",
+  "pf2e-autoloot.settings.count-key.crate.name": "Item types (min,max) for Crates",
+  "pf2e-autoloot.settings.count-key.chest.name": "Item types (min,max) for Chests",
+  "pf2e-autoloot.settings.count-key.pouch.name": "Item types (min,max) for Pouhes",
+  "pf2e-autoloot.settings.count-key.hint": "Minimum and maximum number of items per container generation.",
+
+  "pf2e-autoloot.settings.minimumChestLevelOffset.name": "Minimum Chest Level Offset",
+  "pf2e-autoloot.settings.minimumChestLevelOffset.hint": "Minimum item level that appears depending on the average party level. (APL - this number)",
+  "pf2e-autoloot.settings.maximumChestLevelOffset.name": "Maximum Chest Level Offset",
+  "pf2e-autoloot.settings.maximumChestLevelOffset.hint": "Maximum item level that appears depending on the average party level. (APL + this number)",
+
+  "pf2e-autoloot.settings.crateLevelOffset.name": "Level offset for Crates",
+  "pf2e-autoloot.settings.crateLevelOffset.hint": "Items appearing in Crate containers will be limited to (Average level +/- offset)",
+
+  "pf2e-autoloot.settings.stashLevelOffset.name": "Level offset for Stashes",
+  "pf2e-autoloot.settings.stashLevelOffset.hint": "Items appearing in Stash containers will be limited to (Average level +/- offset)",
+
+  "pf2e-autoloot.settings.rarityWeightsJson.name": "Weights by rarity",
+  "pf2e-autoloot.settings.rarityWeightsJson.hint": "Structure: {\"common\":10,\"uncommon\":3,\"rare\":1,\"unique\":0.2}",
+
+  "pf2e-autoloot.settings.maxStack.name": "Maximum quantity per item generated",
+  "pf2e-autoloot.settings.favorQuantity.name": "Prioritize quantity over price",
+  "pf2e-autoloot.settings.budgetFraction.name": "Budget fraction per container",
+  "pf2e-autoloot.settings.budgetFraction.hint": "Fraction of PF2e ‘Total Value’ per party level (default 0.01 = 1%)",
+
+  "pf2e-autoloot.dialog.containerType.title": "What type of container is this?",
+
+  "pf2e-autoloot.container.barrel": "Barrel",
+  "pf2e-autoloot.container.crate": "Crate",
+  "pf2e-autoloot.container.chest": "Chest",
+  "pf2e-autoloot.container.pouch": "Pouch",
+  "pf2e-autoloot.container.stash": "Stash"
+}
