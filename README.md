@@ -1,6 +1,6 @@
 # PF2e Autoloot
 
-A lightweight Foundry VTT module for **Pathfinder 2e** that automatically populates loot containers as you open or reroll them. It uses smart budgets based on party level, rarity-weighted selection, and configurable rules per container type. Great for quick prep and BG3-style exploration looting.
+A lightweight Foundry VTT module for **Pathfinder 2e** that automatically populates loot containers as you open or reroll them. It uses smart budgets based on party level, rarity-weighted selection, and configurable rules per container type. (Heavely based on BG3 loot system).
 
 ## Features
 
