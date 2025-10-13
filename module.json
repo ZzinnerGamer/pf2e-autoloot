@@ -1,7 +1,7 @@
 {
   "id": "pf2e-autoloot",
   "title": "PF2e Autoloot",
-  "version": "1.0.0",
+  "version": "#{VERSION}#",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -39,5 +39,8 @@
       }
     ]
   },
-  "description": ""
+  "description": "A lightweight Foundry VTT module for Pathfinder 2e that automatically populates loot containers as you open or reroll them. It uses smart budgets based on party level, rarity-weighted selection, and configurable rules per container type. (Heavely based on BG3 loot system).",
+  "url": "#{URL}#",
+  "manifest": "#{MANIFEST}#",
+  "download": "#{DOWNLOAD}#"
 }
