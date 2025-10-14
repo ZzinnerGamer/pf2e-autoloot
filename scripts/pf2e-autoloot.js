@@ -117,7 +117,6 @@ const STASH_SPECS = {
   20: { perms: {20:4},          cons: {20:4,19:2},     currency: 140000}
 };
 
-
 /* ---------------- Settings ---------------- */
 Hooks.once("init", () => {
   const L  = (k) => game.i18n.localize(k);
@@ -286,14 +285,13 @@ Hooks.once("init", () => {
   });
 
   game.settings.register(MODULE, "preloadOnReady", {
-    name: game.i18n.localize("pf2e-autoloot.settings.preloadOnReady.name") || "Preload indexes on world ready",
-    hint: game.i18n.localize("pf2e-autoloot.settings.preloadOnReady.hint") || "",
+    name: game.i18n.localize("pf2e-autoloot.settings.preloadOnReady.name"),
+    hint: game.i18n.localize("pf2e-autoloot.settings.preloadOnReady.hint"),
     scope: "world",
     config: false,
     type: Boolean,
     default: DEFAULTS.preloadOnReady
   });
-
 
   game.settings.register(MODULE, "uniqueRegistryJson", {
     name: L("pf2e-autoloot.settings.uniqueRegistryJson.name"),
@@ -472,7 +470,6 @@ async function generateStash(actor, partyLevel) {
   if (toCreate.length) await actor.createEmbeddedDocuments("Item", toCreate);
 }
 
-
 function rarityWeightFromSetting() {
   let weights = {...DEFAULTS.rarityWeights};
   try {
@@ -482,9 +479,11 @@ function rarityWeightFromSetting() {
   } catch (e) { console.warn(MODULE, "rarityWeightsJson parse error", e); }
   return weights;
 }
+
 function getRarity(entry) {
   return entry?.system?.traits?.rarity ?? entry?.system?.rarity?.value ?? entry?.system?.traits?.rarity?.value ?? "common";
 }
+
 function isUnique(entry) { return getRarity(entry) === "unique"; }
 
 function priceToGP(item) {
@@ -510,10 +509,8 @@ function priceToGP(item) {
   if (typeof p.per === "number" && p.per > 1) {
     gp = gp / p.per;
   }
-
   return gp;
 }
-
 
 function priceFromIndex(entry) {
   const p = entry?.system?.price;
@@ -536,10 +533,8 @@ function priceFromIndex(entry) {
   if (typeof p.per === "number" && p.per > 1) {
     gp = gp / p.per;
   }
-
   return gp;
 }
-
 
 function parseCount(key) {
   const raw = game.settings.get(MODULE, `count-${key}`);
@@ -551,18 +546,17 @@ function parseCount(key) {
 function getAveragePartyLevel() {
   const partyActor = game.actors?.party;
   let actors = [];
+
   if (partyActor?.members?.length) {
     actors = partyActor.members
       .map(m => m?.actor || m)
       .filter(a => a && a.type === "character");
   }
-
   if (!actors.length && canvas.ready) {
     actors = canvas.tokens.placeables
       .map(t => t.actor)
       .filter(a => a?.type === "character" && a.hasPlayerOwner);
   }
-
   if (!actors.length) {
     actors = game.actors.filter(a => a.type === "character" && a.hasPlayerOwner);
   }
@@ -578,7 +572,6 @@ function getAveragePartyLevel() {
 }
 
 function getPartySize() {
-  // PCs con propietario (como ya haces en getAveragePartyLevel)
   let actors = [];
   const partyActor = game.actors?.party;
   if (partyActor?.members?.length) {
@@ -631,7 +624,6 @@ async function mintCoinsFromBudget(gpAmount, toCreate) {
   }
 }
 
-
 async function getPack(id) {
   const pack = game.packs.get(id);
   return pack || null;
@@ -650,7 +642,6 @@ async function getAllEquipmentPacks() {
       return pack;
     })
   );
-
   return packs.filter(Boolean);
 }
 
@@ -694,9 +685,11 @@ function uniqueRegistry() {
     return JSON.parse(game.settings.get(MODULE,"uniqueRegistryJson")||"{}") || {};
   } catch { return {}; }
 }
+
 async function uniqueRegistrySet(obj) {
   await game.settings.set(MODULE, "uniqueRegistryJson", JSON.stringify(obj));
 }
+
 function uniqueKey(entry) {
   return `${entry.__pack||"unknown"}:${entry._id}`;
 }
@@ -714,7 +707,6 @@ function uniqueKeyFromItem(item) {
   if (!src?.pack || !src?.id) return null;
   return `${src.pack}:${src.id}`;
 }
-
 
 /* ---------------- Preload Cache ---------------- */
 async function preloadCache() {
@@ -777,7 +769,6 @@ Hooks.once("ready", async () => {
   }
 });
 
-
 /* -------------- Pooling ---------------- */
 function getContainerTypeByName(name) {
   const isBarrel = nameMatches(name, "barrel");
@@ -836,8 +827,6 @@ function filterPools(containerType, partyLevel) {
   return { equip, kctg };
 }
 
-
-
 async function getDocFrom(entry) {
   const id = entry._id;
   const fromEquip = entry.__pack === (Cache.equipPack?.collection || "x");
@@ -877,7 +866,6 @@ function getContainerBudget(containerType, partyLevel) {
   return base;
 }
 
-
 function getCountRange(containerType) {
   const raw = game.settings.get(MODULE, `count-${containerType}`);
   const parts = String(raw).split(",").map(n=>Number(n.trim())).filter(Number.isFinite);
@@ -902,8 +890,6 @@ function getQuotas(containerType, typeCount) {
   }
 }
 
-
-
 /* -------------- Core generation -------------- */
 async function generateFor(actor, containerType, opts = {}) {
   if (InFlight.has(actor)) { dbg("skip generate: in-flight"); return; }
@@ -927,7 +913,6 @@ async function generateFor(actor, containerType, opts = {}) {
     const partyLevel = getAveragePartyLevel();
     const budget = { gp: getContainerBudget(containerType, partyLevel) };
 
-
     if (containerType === "stash") {
       const stashOffset = Number(game.settings.get(MODULE, "stashLevelOffset") ?? DEFAULTS.stashLevelOffset);
       const partyLevel = getAveragePartyLevel();
@@ -938,7 +923,6 @@ async function generateFor(actor, containerType, opts = {}) {
       await actor.setFlag(MODULE, "rollTime", Date.now());
       return;
     }
-
 
     const {equip, kctg} = filterPools(containerType, partyLevel);
     let candidates = [...equip, ...kctg];
@@ -954,7 +938,6 @@ async function generateFor(actor, containerType, opts = {}) {
     candidates = candidates.filter(e => (!isUnique(e) || !reg[uniqueKey(e)]));
     candidates = candidates.filter(e => (priceFromIndex(e) || 0) >= 0.01);
 
-
     if (!candidates.length) {
       await actor.setFlag(MODULE, "rolled", true);
       await actor.setFlag(MODULE, "empty", true);
@@ -965,7 +948,6 @@ async function generateFor(actor, containerType, opts = {}) {
       total: candidates.length,
       leqBudget: candidates.filter(e => priceFromIndex(e) > 0 && priceFromIndex(e) <= budget.gp).length
     });
-
 
     const [minTypes, maxTypes] = getCountRange(containerType);
     const typeCount = Math.max(minTypes, Math.min(maxTypes, minTypes + Math.floor(Math.random()*(maxTypes-minTypes+1))));
@@ -1164,7 +1146,6 @@ async function generateFor(actor, containerType, opts = {}) {
 
     budget.gp = 0;
   }
-
     const startBudget = budget.gp;
 
     dbg("loot summary", {
@@ -1179,10 +1160,11 @@ async function generateFor(actor, containerType, opts = {}) {
     await actor.setFlag(MODULE, "rolled", true);
     await actor.setFlag(MODULE, "containerType", containerType);
     await actor.setFlag(MODULE, "rollTime", Date.now());
-} finally {
-  InFlight.delete(actor);
+  } finally {
+    InFlight.delete(actor);
+  }
 }
-}
+
 async function promptContainerType() {
   const L = (k) => game.i18n.localize(k);
   return new Promise((resolve) => {
@@ -1236,12 +1218,11 @@ async function rerollFor(actor, forcedType = null, { promptIfUnknown = false, ig
     }
     if (!type) return;
 
-    await generateFor(actor, type, { ignoreEmpty: true, ignoreRolled: true });
+    await generateFor(actor, type, { ignoreEmpty: false, ignoreRolled: true });
   } finally {
     ManualRoll.delete(actor);
   }
 }
-
 
 /* -------------- Hooks -------------- */
 Hooks.on("renderActorSheet", async (app, html, data) => {
@@ -1257,7 +1238,7 @@ Hooks.on("renderActorSheet", async (app, html, data) => {
     if (ManualRoll.has(actor)) { dbg("skip autogen: manual roll"); return; }
     const type = getContainerTypeByName(actor.name ?? "");
     if (!type) return;
-    await generateFor(actor, type, { ignoreEmpty: true, ignoreRolled: true });
+    await generateFor(actor, type, { ignoreEmpty: false, ignoreRolled: true });
   } catch (e) {
     console.error(`${MODULE} error`, e);
   }
