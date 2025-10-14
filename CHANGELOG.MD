@@ -1,3 +1,8 @@
+# PF2e Autoloot [1.1.4]
+
+* Added Polish localization
+* Fixed custom compendiums
+
 # PF2e Autoloot [1.1.3]
 
 * Fixed empty probability not working
