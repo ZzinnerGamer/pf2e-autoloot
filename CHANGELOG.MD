@@ -1,3 +1,15 @@
+# PF2e Autoloot [1.1.3]
+
+* Fixed empty probability not working
+
+# PF2e Autoloot [1.1.2]
+
+* Added French Localization [🇫🇷 RadicalBlue & rectulo]
+
+# PF2e Autoloot [1.1.1]
+
+* Fixed Spanish localization
+
 # PF2e Autoloot [1.1.0]
 
 * Fixed Typo (no more Pouhes only Pouches)
