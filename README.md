@@ -64,4 +64,4 @@ https://github.com/user-attachments/assets/aab40104-b5da-47b8-937c-651779a485b1
 
 ---
 
-If you want to localize the module to your own language, tag me on Foundry or PF2e Foundry servers or send me a DM @Zinneryte. [Here is the gitlocalize link.](https://gitlocalize.com/repo/10500)
+If you want to localize the module to your own language, tag me on Foundry or PF2e Foundry servers or send me a DM @Zinneryte. [Here is the gitlocalize link.](https://gitlocalize.com/repo/10503)
