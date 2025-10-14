@@ -121,12 +121,17 @@ const STASH_SPECS = {
 /* ---------------- Settings ---------------- */
 Hooks.once("init", () => {
   const L  = (k) => game.i18n.localize(k);
-  const F  = (tpl, data = {}) => String(tpl).replace(/\{(\w+)\}/g, (_, k) => (k in data ? data[k] : `{${k}}`));
 
   game.settings.register(MODULE, "pack-equipment", {
-    name: "Compendio de sistema",
-    scope: "world", config: false, default: DEFAULTS.packs.equipment, type: String
+    name: L("pf2e-autoloot.settings.pack-equipment.name"),
+    hint: L("pf2e-autoloot.settings.pack-equipment.hint"),
+    scope: "world",
+    config: true,
+    type: String,
+    default: DEFAULTS.packs.equipment,
+    requiresReload: true
   });
+
   game.settings.register(MODULE, "pack-kctg", {
     name: "Compendio de Kris",
     scope: "world", config: false, default: DEFAULTS.packs.kctg, type: String
@@ -631,6 +636,24 @@ async function getPack(id) {
   const pack = game.packs.get(id);
   return pack || null;
 }
+
+async function getAllEquipmentPacks() {
+  const packIds = game.settings.get(MODULE, "pack-equipment")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const packs = await Promise.all(
+    packIds.map(async id => {
+      const pack = game.packs.get(id);
+      if (!pack) console.warn(`${MODULE}: Missing compendium ${id}`);
+      return pack;
+    })
+  );
+
+  return packs.filter(Boolean);
+}
+
 async function getIndexWith(pack, fields) {
   await pack.getIndex({fields});
   return pack.index;
@@ -695,30 +718,34 @@ function uniqueKeyFromItem(item) {
 
 /* ---------------- Preload Cache ---------------- */
 async function preloadCache() {
-  const packEquipId = game.settings.get(MODULE, "pack-equipment") || DEFAULTS.packs.equipment;
-  const packKctgId  = game.settings.get(MODULE, "pack-kctg") || DEFAULTS.packs.kctg;
-  const packEquip = await getPack(packEquipId);
-  const packKctg  = await getPack(packKctgId);
+  const packEquipList = await getAllEquipmentPacks();
+  const packKctgId = game.settings.get(MODULE, "pack-kctg") || DEFAULTS.packs.kctg;
+  const packKctg = game.packs.get(packKctgId);
 
-  if (!packEquip) {
-    ui.notifications.error(`${MODULE}: ${game.i18n.localize("pf2e-autoloot.dbg.preloadCache.notFound")} ${packEquipId}`);
+  if (!packEquipList.length) {
+    ui.notifications.error(`${MODULE}: No valid equipment compendiums found`);
     return;
   }
 
-  const fields = ["name","type","img","folder",
+  const fields = [
+    "name", "type", "img", "folder",
     "system.level.value",
-    "system.traits.rarity","system.rarity.value",
-    "system.price.value","system.price.per",
+    "system.traits.rarity", "system.rarity.value",
+    "system.price.value", "system.price.per",
     "system.quantity"
   ];
 
-  const equipIndex = await getIndexWith(packEquip, fields);
-  Cache.equipIndex = equipIndex.map(e => ({...e, __pack: packEquip.collection}));
-  Cache.equipPack = packEquip;
+  const equipIndex = [];
+  for (const pack of packEquipList) {
+    const index = await pack.getIndex({ fields });
+    equipIndex.push(...index.map(e => ({ ...e, __pack: pack.collection })));
+  }
 
+  Cache.equipIndex = equipIndex;
+  Cache.equipPack = packEquipList[0];
   if (packKctg) {
-    const kctgIndex = await getIndexWith(packKctg, fields);
-    Cache.kctgIndex = kctgIndex.map(e => ({...e, __pack: packKctg.collection}));
+    const kctgIndex = await packKctg.getIndex({ fields });
+    Cache.kctgIndex = kctgIndex.map(e => ({ ...e, __pack: packKctg.collection }));
     Cache.kctgPack = packKctg;
     Cache.kctgFolders = await buildKCTGFolderMap(packKctg);
   } else {
@@ -726,6 +753,7 @@ async function preloadCache() {
     Cache.kctgPack = null;
     Cache.kctgFolders = {};
   }
+
   Cache.ready = true;
 
   console.log(`${MODULE} | Preload done`, {
@@ -1033,17 +1061,14 @@ async function generateFor(actor, containerType, opts = {}) {
       const r = getRarity(x.e);
       let s = Number(weights[r]) || 1;
 
-      // Sesgo: si favorecemos cantidad, prima el barato relativo al cap actual
       if (favorQty) {
         const rel = x.p / Math.max(1, cap);
-        s *= 1 / Math.max(0.2, Math.min(3, rel)); // más barato ⇒ más peso
+        s *= 1 / Math.max(0.2, Math.min(3, rel));
       } else {
-        // sin favorQty, evita extremos caros: inclina hacia precio medio
         const rel = x.p / Math.max(1, budgetGP);
         s *= 1 / Math.sqrt(Math.max(0.5, rel));
       }
 
-      // ruido leve
       s *= (0.9 + Math.random() * 0.2);
       return Math.max(0.0001, s);
     }
@@ -1137,7 +1162,7 @@ async function generateFor(actor, containerType, opts = {}) {
 
     await mintCoinsFromBudget(seedCoins + leftover, toCreate);
 
-    budget.gp = 0; // ya no queda presupuesto
+    budget.gp = 0;
   }
 
     const startBudget = budget.gp;
