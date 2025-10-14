@@ -2,6 +2,8 @@
   "PF2EAUTOLOOT.Settings.Title": "PF2e Autoloot",
   "pf2e-autoloot.settings.autoloot.name": "Générer le butin automatiquement par nom d'acteur",
   "pf2e-autoloot.settings.autoloot.hint": "À chaque fois qu'un token d'acteur butin avec les noms assignés ci-dessous est ouvert, le butin sera automatiquement distribué sans l'intervention du MJ.",
+  "pf2e-autoloot.settings.pack-equipment.name": "Compendiums d'équipement",
+  "pf2e-autoloot.settings.pack-equipment.hint": "Indiquez un ou plusieurs identifiants de compendium séparés par des virgules (par exemple, pf2e.equipment-srd, sf2e-anachronism.equipment, world.my-loot-pack).\nNE PAS INCLURE le compendium kctg-2e (Kris Compendium of Trade Goods) qui est traité séparément.",
   "pf2e-autoloot.settings.avoidNamesRegex.name": "Éviter ces objets",
   "pf2e-autoloot.settings.avoidNamesRegex.hint": "Si vous avez besoin qu'un objet n'apparaisse pas dans les objets choisis aléatoirement, écrivez son slug ici comme ceci. Ex : (?:endless-quiver|rusting-ammunition-greater|etc)",
   "pf2e-autoloot.settings.name-key.barrel.name": "Nom de contenant pour les Tonneaux",
