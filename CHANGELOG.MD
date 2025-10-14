@@ -1,3 +1,8 @@
+# PF2e Autoloot [1.1.0]
+
+* Fixed Typo (no more Pouhes only Pouches)
+* Added custom compendium entry for parsing the loot (requires reload).
+
 # PF2e Autoloot [1.0.0]
 
 A lightweight Foundry VTT module for **Pathfinder 2e** that automatically populates loot containers as you open or reroll them. It uses smart budgets based on party level, rarity-weighted selection, and configurable rules per container type. Great for quick prep and BG3-style exploration looting.
