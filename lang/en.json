@@ -2,6 +2,9 @@
   "PF2EAUTOLOOT.Settings.Title": "PF2e Autoloot",
   "pf2e-autoloot.settings.autoloot.name": "Auto Roll for loot by actor name",
   "pf2e-autoloot.settings.autoloot.hint": "Each time a loot actor token with the names assigned below is opened, the loot will be automatically distributed without GM intervention.",
+  
+  "pf2e-autoloot.settings.pack-equipment.name": "Equipment Compendiums",
+  "pf2e-autoloot.settings.pack-equipment.hint": "List one or more compendium IDs separated by commas (e.g. pf2e.equipment-srd, sf2e-anachronism.equipment, world.my-loot-pack).\nDo NOT include the kctg-2e.kctg-2e compendium, is treated separately.",
 
   "pf2e-autoloot.settings.avoidNamesRegex.name": "Avoid items",
   "pf2e-autoloot.settings.avoidNamesRegex.hint": "If you need an item to not appear in the item roll, write its slug here like this. Ex: (?:endless-quiver|rusting-ammunition-greater|etc)",
@@ -9,20 +12,20 @@
   "pf2e-autoloot.settings.name-key.barrel.name": "Container name for Barrels",
   "pf2e-autoloot.settings.name-key.crate.name": "Container name for Crates",
   "pf2e-autoloot.settings.name-key.chest.name": "Container name for Chests",
-  "pf2e-autoloot.settings.name-key.pouch.name": "Container name for Pouhes",
+  "pf2e-autoloot.settings.name-key.pouch.name": "Container name for Pouches",
   "pf2e-autoloot.settings.name-key.hint": "Regular expression (case insensitive)",
 
   "pf2e-autoloot.settings.empty-key.barrel.name": "Probability of being empty (0–100%) for Barrels",
   "pf2e-autoloot.settings.empty-key.crate.name": "Probability of being empty (0–100%) for Crates",
   "pf2e-autoloot.settings.empty-key.chest.name": "Probability of being empty (0–100%) for Chests",
-  "pf2e-autoloot.settings.empty-key.pouch.name": "Probability of being empty (0–100%) for Pouhes",
+  "pf2e-autoloot.settings.empty-key.pouch.name": "Probability of being empty (0–100%) for Pouches",
   "pf2e-autoloot.settings.empty-key.stash.name": "Probability of being empty (0–100%) for Stashes",
   "pf2e-autoloot.settings.empty-key.hint": "Probability that the container has nothing.",
 
   "pf2e-autoloot.settings.count-key.barrel.name": "Item types (min,max) for Barrels",
   "pf2e-autoloot.settings.count-key.crate.name": "Item types (min,max) for Crates",
   "pf2e-autoloot.settings.count-key.chest.name": "Item types (min,max) for Chests",
-  "pf2e-autoloot.settings.count-key.pouch.name": "Item types (min,max) for Pouhes",
+  "pf2e-autoloot.settings.count-key.pouch.name": "Item types (min,max) for Pouches",
   "pf2e-autoloot.settings.count-key.hint": "Minimum and maximum number of items per container generation.",
 
   "pf2e-autoloot.settings.minimumChestLevelOffset.name": "Minimum Chest Level Offset",
