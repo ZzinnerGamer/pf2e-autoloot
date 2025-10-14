@@ -2,6 +2,8 @@
   "PF2EAUTOLOOT.Settings.Title": "PF2e Autoloot",
   "pf2e-autoloot.settings.autoloot.name": "Auto Roll para botín por nombre del actor",
   "pf2e-autoloot.settings.autoloot.hint": "Cada vez que la ficha de un actor de botín con los nombres asigados a continuación se abra, repartirá automáticamente el botín sin la intervención del GM.",
+  "pf2e-autoloot.settings.pack-equipment.name": "Compedios de Equipos",
+  "pf2e-autoloot.settings.pack-equipment.hint": "Enumera uno o más ID de compendios separados por comas (por ejemplo, pf2e.equipment-srd, sf2e-anachronism.equipment, world.my-loot-pack).\nNO incluyas el compendio kctg-2e.kctg-2e, ya que se trata por separado.",
   "pf2e-autoloot.settings.avoidNamesRegex.name": "Evitar objetos",
   "pf2e-autoloot.settings.avoidNamesRegex.hint": "Si necesitas que algún objeto no aparezca en el roll de objetos escribe su slug aquí de esta manera. Ej: (?:endless-quiver|rusting-ammunition-greater|etc)",
   "pf2e-autoloot.settings.name-key.barrel.name": "Nombre del contenedor para Barriles",
