@@ -61,3 +61,7 @@ https://github.com/user-attachments/assets/aab40104-b5da-47b8-937c-651779a485b1
 * Inspired by **BG3**-style loot pacing.
 * Budgeting guided by the official **PF2e Treasure by Level** table.
 * Thanks to the PF2e & Foundry communities for the amazing ecosystem.
+
+---
+
+If you want to localize the module to your own language, tag me on Foundry or PF2e Foundry servers or send me a DM @Zinneryte. [Here is the gitlocalize link.](https://gitlocalize.com/repo/10500)
