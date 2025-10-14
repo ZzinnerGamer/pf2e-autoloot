@@ -27,6 +27,11 @@
       "lang": "fr",
       "name": "French",
       "path": "lang/fr.json"
+    },
+    {
+      "lang": "pl",
+      "name": "Polish",
+      "path": "lang/pl.json"
     }
   ],
   "relationships": {
