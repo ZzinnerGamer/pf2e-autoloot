@@ -72,8 +72,7 @@ const Cache = {
   kctgFolders: {},
   equipPack: null,
   kctgPack: null,
-  equipDocs: new Map(),
-  kctgDocs: new Map(),
+  docCache: new Map(),
   ready: false
 };
 
@@ -828,14 +827,21 @@ function filterPools(containerType, partyLevel) {
 }
 
 async function getDocFrom(entry) {
-  const id = entry._id;
-  const fromEquip = entry.__pack === (Cache.equipPack?.collection || "x");
-  const map = fromEquip ? Cache.equipDocs : Cache.kctgDocs;
-  if (map.has(id)) return map.get(id);
-  const pack = fromEquip ? Cache.equipPack : Cache.kctgPack;
-  if (!pack) return null;
-  const doc = await pack.getDocument(id);
-  if (doc) map.set(id, doc);
+  const packId = entry.__pack;
+  const docId  = entry._id;
+  if (!packId || !docId) return null;
+
+  const cacheKey = `${packId}:${docId}`;
+  if (Cache.docCache.has(cacheKey)) return Cache.docCache.get(cacheKey);
+
+  const pack = game.packs.get(packId);
+  if (!pack) {
+    console.warn(`${MODULE}: pack not found`, packId, entry?.name);
+    return null;
+  }
+
+  const doc = await pack.getDocument(docId);
+  if (doc) Cache.docCache.set(cacheKey, doc);
   return doc;
 }
 
