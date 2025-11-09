@@ -8,9 +8,9 @@ Custom loot is a powerful new feature that allows you as GM to setup your dream 
 
 ## Know Issues
 * There are item category like Alchemical Tools, Animals their Gear, Runes, and multiple other categories that cannot be parsed without setting them item by item.
-* Assistive items are in adventuring gear category
+* Assistive items are in Adventuring Gear subcategory
 * Personal opinion, I dont feel like Artifacts, Contracts, Intelligent Items, Relics, needs to be looteable by normal means with this module
-* Following Archives of Nethys' equipment tab: Alchemical Tools, Animals and Gear, Banners, Censers, Cursed Items, Customizations, Figurehead, Grafts, Grimoires, Held Items, High Tech, Other, Runes (for now), just because of issue 1, those items are only included in "Equipment" category. (Exception: Alchemical Tools are included in Alchemical Items category too)
+* Following [Archives of Nethys' equipment tab](https://2e.aonprd.com/Equipment.aspx): Alchemical Tools, Animals and Gear, Banners, Censers, Cursed Items, Customizations, Figurehead, Grafts, Grimoires, Held Items, High Tech, Other, Runes (for now), just because of issue 1, those items are only included in "Equipment" category. (Exception: Alchemical Tools are included in Alchemical Items subcategory too)
 
 # PF2e Autoloot [1.1.4]
 
