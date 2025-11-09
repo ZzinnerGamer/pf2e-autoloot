@@ -1,7 +1,7 @@
 const MODULE = "pf2e-autoloot";
 
 const FILTER_CATALOG = [
-  // ==== Equipment (grupo mayor) ====
+  // ==== Equipment ====
   { id: "group:equipment",                             label: "Equipment",              group: "Equipment",                    kind: "major" },
   { id: "equipment:adjustments",                       label: "Adjustments",            group: "Equipment",                    kind: "minor", parent: "group:equipment" },
   { id: "equipment:adventuring-gear",                  label: "Adventuring Gear",       group: "Equipment",                    kind: "minor", parent: "group:equipment" },
@@ -10,24 +10,20 @@ const FILTER_CATALOG = [
   { id: "equipment:alchemical-bombs",                  label: "Alchemical Bombs",       group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
   { id: "equipment:alchemical-elixirs",                label: "Alchemical Elixirs",     group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
   { id: "equipment:alchemical-food",                   label: "Alchemical Food",        group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
-  { id: "equipment:alchemical-other",                  label: "Alchemical Other",       group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
   { id: "equipment:alchemical-plants",                 label: "Alchemical Plants",      group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
   { id: "equipment:alchemical-poisons",                label: "Alchemical Poisons",     group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
   { id: "equipment:alchemical-tools",                  label: "Alchemical Tools",       group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
   { id: "equipment:bottled-monstrosities",             label: "Bottled Monstrosities",  group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
-  { id: "equipment:drugs",                             label: "Drugs",                  group: "Equipment / Alchemical Items", kind: "leaf",  parent: "equipment:alchemical-items" },
   { id: "equipment:materials",                         label: "Materials",              group: "Equipment",                    kind: "minor", parent: "group:equipment" },
   { id: "equipment:snares",                            label: "Snares",                 group: "Equipment",                    kind: "minor", parent: "group:equipment" },
   { id: "equipment:spellhearts",                       label: "Spellhearts",            group: "Equipment",                    kind: "minor", parent: "group:equipment" },
   { id: "equipment:staves",                            label: "Staves",                 group: "Equipment",                    kind: "minor", parent: "group:equipment" },
   { id: "equipment:tattoos",                           label: "Tattoos",                group: "Equipment",                    kind: "minor", parent: "group:equipment" },
-  { id: "equipment:wands",                             label: "Wands",                  group: "Equipment",                    kind: "minor", parent: "group:equipment" },
-  { id: "equipment:worn-items",                        label: "Worn Items",             group: "Equipment",                    kind: "minor", parent: "group:equipment" },
 
   // ==== Armor ====
   { id: "group:armor",                                 label: "Armor",                  group: "Armor",                        kind: "major" },
 
-  { id: "armor:unarmored",                             label: "Unarmored Armor",              group: "Armor",                        kind: "minor", parent: "group:armor" },
+  { id: "armor:unarmored",                             label: "Unarmored Armor",        group: "Armor",                        kind: "minor", parent: "group:armor" },
   { id: "item.system.baseItem:explorers-clothing",     label: "Explorer’s Clothing",    group: "Armor / Unarmored",            kind: "leaf",  parent: "armor:unarmored" },
   { id: "item.system.baseItem:scroll-robes",           label: "Scroll Robes",           group: "Armor / Unarmored",            kind: "leaf",  parent: "armor:unarmored" },
   { id: "item.system.baseItem:gi",                     label: "Gi",                     group: "Armor / Unarmored",            kind: "leaf",  parent: "armor:unarmored" },
@@ -244,3 +240,4 @@ const API = {
 };
 
 window.pf2eAutolootCustom = API;
+
