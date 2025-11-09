@@ -1,3 +1,5 @@
+import { AutolootConfigApp } from "./option-menu.js";
+
 const MODULE = "pf2e-autoloot";
 
 const DEFAULTS = {
@@ -82,7 +84,7 @@ const ManualRoll = new WeakSet();
 const COIN_NAMES = {
   pp: "Platinum Pieces",
   gp: "Gold Pieces",
-  sp: "Silver Pieces",
+  sp: "Silver Pieces" || "Credits",
   cp: "Copper Pieces"
 };
 
@@ -120,11 +122,20 @@ const STASH_SPECS = {
 Hooks.once("init", () => {
   const L  = (k) => game.i18n.localize(k);
 
+  
+  game.settings.registerMenu(MODULE, "autolootSettingsMenu", {
+    name: game.i18n.localize("pf2e-autoloot.settings.menu.name"),
+    label: game.i18n.localize("pf2e-autoloot.settings.menu.name"),
+    icon: "fas fa-box-open",
+    type: AutolootConfigApp,
+    restricted: true
+  });
+
   game.settings.register(MODULE, "pack-equipment", {
     name: L("pf2e-autoloot.settings.pack-equipment.name"),
     hint: L("pf2e-autoloot.settings.pack-equipment.hint"),
     scope: "world",
-    config: true,
+    config: false,
     type: String,
     default: DEFAULTS.packs.equipment,
     requiresReload: true
@@ -138,149 +149,149 @@ Hooks.once("init", () => {
   game.settings.register(MODULE, "autoloot", {
     name: L("pf2e-autoloot.settings.autoloot.name"),
     hint: L("pf2e-autoloot.settings.autoloot.hint"),
-    scope: "world", config: true, default: false, type: Boolean
+    scope: "world", config: false, default: false, type: Boolean
   });
 
     game.settings.register(MODULE, "avoidNamesRegex", {
     name: L("pf2e-autoloot.settings.avoidNamesRegex.name"),
     hint: L("pf2e-autoloot.settings.avoidNamesRegex.hint"),
-    scope: "world", config: true, type: String, default: ""
+    scope: "world", config: false, type: String, default: ""
   });
 
   game.settings.register(MODULE, `name-barrel`, {
     name: L("pf2e-autoloot.settings.name-key.barrel.name"),
     hint: L("pf2e-autoloot.settings.name-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.names.barrel, type: String
+    scope: "world", config: false, default: DEFAULTS.names.barrel, type: String
   });
 
   game.settings.register(MODULE, `empty-barrel`, {
     name: L("pf2e-autoloot.settings.empty-key.barrel.name"),
     hint: L("pf2e-autoloot.settings.empty-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.emptyChance.barrel, type: Number,
+    scope: "world", config: false, default: DEFAULTS.emptyChance.barrel, type: Number,
     range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, `count-barrel`, {
     name: L("pf2e-autoloot.settings.count-key.barrel.name"),
     hint: L("pf2e-autoloot.settings.count-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.counts.barrel.join(","), type: String
+    scope: "world", config: false, default: DEFAULTS.counts.barrel.join(","), type: String
   });
 
   game.settings.register(MODULE, `name-crate`, {
     name: L("pf2e-autoloot.settings.name-key.crate.name"),
     hint: L("pf2e-autoloot.settings.name-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.names.crate, type: String
+    scope: "world", config: false, default: DEFAULTS.names.crate, type: String
   });
 
   game.settings.register(MODULE, `empty-crate`, {
     name: L("pf2e-autoloot.settings.empty-key.crate.name"),
     hint: L("pf2e-autoloot.settings.empty-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.emptyChance.crate, type: Number,
+    scope: "world", config: false, default: DEFAULTS.emptyChance.crate, type: Number,
     range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, `count-crate`, {
     name: L("pf2e-autoloot.settings.count-key.crate.name"),
     hint: L("pf2e-autoloot.settings.count-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.counts.crate.join(","), type: String
+    scope: "world", config: false, default: DEFAULTS.counts.crate.join(","), type: String
   });
 
   game.settings.register(MODULE, "crateLevelOffset", {
     name: L("pf2e-autoloot.settings.crateLevelOffset.name"),
     hint: L("pf2e-autoloot.settings.crateLevelOffset.hint"),
-    scope: "world", config: true, default: DEFAULTS.crateLevelOffset, type: Number, range:{min:-10,max:10,step:1}
+    scope: "world", config: false, default: DEFAULTS.crateLevelOffset, type: Number, range:{min:-10,max:10,step:1}
   });
 
   game.settings.register(MODULE, `name-chest`, {
     name: L("pf2e-autoloot.settings.name-key.chest.name"),
     hint: L("pf2e-autoloot.settings.name-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.names.chest, type: String
+    scope: "world", config: false, default: DEFAULTS.names.chest, type: String
   });
 
   game.settings.register(MODULE, `empty-chest`, {
     name: L("pf2e-autoloot.settings.empty-key.chest.name"),
     hint: L("pf2e-autoloot.settings.empty-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.emptyChance.chest, type: Number,
+    scope: "world", config: false, default: DEFAULTS.emptyChance.chest, type: Number,
     range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, `count-chest`, {
     name: L("pf2e-autoloot.settings.count-key.chest.name"),
     hint: L("pf2e-autoloot.settings.count-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.counts.chest.join(","), type: String
+    scope: "world", config: false, default: DEFAULTS.counts.chest.join(","), type: String
   });
 
   game.settings.register(MODULE, `minimumChestLevelOffset`, {
     name: L("pf2e-autoloot.settings.minimumChestLevelOffset.name"),
     hint: L("pf2e-autoloot.settings.minimumChestLevelOffset.hint"),
-    scope: "world", config: true, default: DEFAULTS.minimumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
+    scope: "world", config: false, default: DEFAULTS.minimumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
   });
   
   game.settings.register(MODULE, `maximumChestLevelOffset`, {
     name: L("pf2e-autoloot.settings.maximumChestLevelOffset.name"),
     hint: L("pf2e-autoloot.settings.maximumChestLevelOffset.hint"),
-    scope: "world", config: true, default: DEFAULTS.maximumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
+    scope: "world", config: false, default: DEFAULTS.maximumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
   });
 
   game.settings.register(MODULE, `name-pouch`, {
     name: L("pf2e-autoloot.settings.name-key.pouch.name"),
     hint: L("pf2e-autoloot.settings.name-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.names.pouch, type: String
+    scope: "world", config: false, default: DEFAULTS.names.pouch, type: String
   });
 
   game.settings.register(MODULE, `empty-pouch`, {
     name: L("pf2e-autoloot.settings.empty-key.pouch.name"),
     hint: L("pf2e-autoloot.settings.empty-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.emptyChance.pouch, type: Number,
+    scope: "world", config: false, default: DEFAULTS.emptyChance.pouch, type: Number,
     range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, `count-pouch`, {
     name: L("pf2e-autoloot.settings.count-key.pouch.name"),
     hint: L("pf2e-autoloot.settings.count-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.counts.pouch.join(","), type: String
+    scope: "world", config: false, default: DEFAULTS.counts.pouch.join(","), type: String
   });
 
   game.settings.register(MODULE, `name-stash`, {
     name: L("pf2e-autoloot.settings.name-key.stash.name"),
     hint: L("pf2e-autoloot.settings.name-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.names.stash, type: String
+    scope: "world", config: false, default: DEFAULTS.names.stash, type: String
   });
 
   game.settings.register(MODULE, `empty-stash`, {
     name: L("pf2e-autoloot.settings.empty-key.stash.name"),
     hint: L("pf2e-autoloot.settings.empty-key.hint"),
-    scope: "world", config: true, default: DEFAULTS.emptyChance.stash, type: Number,
+    scope: "world", config: false, default: DEFAULTS.emptyChance.stash, type: Number,
     range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, "stashLevelOffset", {
     name: L("pf2e-autoloot.settings.stashLevelOffset.name"),
     hint: L("pf2e-autoloot.settings.stashLevelOffset.hint"),
-    scope: "world", config: true, default: DEFAULTS.stashLevelOffset, type: Number, range:{min:-10,max:10,step:1}
+    scope: "world", config: false, default: DEFAULTS.stashLevelOffset, type: Number, range:{min:-10,max:10,step:1}
   });
 
   game.settings.register(MODULE, "rarityWeightsJson", {
     name: L("pf2e-autoloot.settings.rarityWeightsJson.name"),
     hint: L("pf2e-autoloot.settings.rarityWeightsJson.hint"),
-    scope: "world", config: true, type: String,
+    scope: "world", config: false, type: String,
     default: JSON.stringify(DEFAULTS.rarityWeights)
   });
 
   game.settings.register(MODULE, "maxStack", {
     name: L("pf2e-autoloot.settings.maxStack.name"),
-    scope: "world", config: true, type: Number, default: DEFAULTS.maxStack, range:{min:1,max:50,step:1}
+    scope: "world", config: false, type: Number, default: DEFAULTS.maxStack, range:{min:1,max:50,step:1}
   });
 
   game.settings.register(MODULE, "favorQuantity", {
     name: L("pf2e-autoloot.settings.favorQuantity.name"),
-    scope: "world", config: true, type: Boolean, default: true
+    scope: "world", config: false, type: Boolean, default: true
   });
 
   game.settings.register(MODULE, "budgetFraction", {
     name: L("pf2e-autoloot.settings.budgetFraction.name"),
     hint: L("pf2e-autoloot.settings.budgetFraction.hint"),
-    scope: "world", config: true, type: Number, default: DEFAULTS.budgetFraction, range:{min:0.01,max:1,step:0.01}
+    scope: "world", config: false, type: Number, default: DEFAULTS.budgetFraction, range:{min:0.01,max:1,step:0.01}
   });
 
   game.settings.register(MODULE, "preloadOnReady", {
@@ -297,52 +308,22 @@ Hooks.once("init", () => {
     scope: "world", config: false, type: String, default: "{}"
   });
 
+  game.settings.register(MODULE, "customContainersJson", {
+    name: L("pf2e-autoloot.settings.custom.title"),
+    scope: "world",
+    config: false,
+    type: String,
+    default: "[]"
+  });
+
   game.settings.register(MODULE, "debug", {
     name: "Debug",
-    scope: "world", config: true, default: false, type: Boolean
+    scope: "world", config: false, default: false, type: Boolean
   });
 });
 
 /* -------------- Helpers -------------- */
 function dbg(...args) { if (game.settings.get(MODULE,"debug")) console.debug(MODULE, ...args); }
-function rng(n) { return Math.floor(Math.random()*n); }
-function pickRand(arr) { return arr[rng(arr.length)]; }
-
-function shuffleInPlace(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function classify(raw) {
-  const t = raw.type;
-  const traits = new Set(raw.system?.traits?.value ?? []);
-  if (t === "ammo") return "ammo";
-  if (t === "consumable") {
-    if (traits.has("ammunition") || traits.has("ammunition-arcane") || traits.has("ammo")) {
-      return "consumable-ammo";
-    }
-    return "consumable";
-  }
-  if (t === "weapon") return "weapon";
-  if (t === "armor") return "armor";
-  if (t === "shield") return "shield";
-  if (t === "treasure") return "treasure";
-  return "equipment";
-}
-
-function makeBands(cheapPairs, budget) {
-  if (!cheapPairs.length) return [];
-  const prices = cheapPairs.map(x => x.p).sort((a,b)=>a-b);
-  const lo = prices[Math.floor(prices.length * 0.33)];
-  const hi = prices[Math.floor(prices.length * 0.66)];
-  const b1 = cheapPairs.filter(x => x.p <= lo);
-  const b2 = cheapPairs.filter(x => x.p > lo && x.p <= hi);
-  const b3 = cheapPairs.filter(x => x.p > hi && x.p <= budget);
-  return [shuffleInPlace(b1), shuffleInPlace(b2), shuffleInPlace(b3)];
-}
 
 function weightedSample(list, count, weightFn) {
   if (!list.length || count <= 0) return [];
@@ -466,7 +447,13 @@ async function generateStash(actor, partyLevel) {
     toCreate.push(raw);
   }
 
-  if (toCreate.length) await actor.createEmbeddedDocuments("Item", toCreate);
+  if (toCreate.length) {
+    await actor.createEmbeddedDocuments("Item", toCreate);
+    ui.notifications?.info(game.i18n.localize("pf2e-autoloot.msg.lootGenerated") || "Loot has been generated.");
+  } else {
+    ui.notifications?.warn(game.i18n.localize("pf2e-autoloot.msg.lootEmpty") || "This loot is empty.");
+  }
+
 }
 
 function rarityWeightFromSetting() {
@@ -533,13 +520,6 @@ function priceFromIndex(entry) {
     gp = gp / p.per;
   }
   return gp;
-}
-
-function parseCount(key) {
-  const raw = game.settings.get(MODULE, `count-${key}`);
-  const m = String(raw).split(",").map(n => Number(n.trim())).filter(n=>Number.isFinite(n));
-  if (m.length === 2) return [Math.min(m[0], m[1]), Math.max(m[0], m[1])];
-  return DEFAULTS.counts[key];
 }
 
 function getAveragePartyLevel() {
@@ -623,11 +603,6 @@ async function mintCoinsFromBudget(gpAmount, toCreate) {
   }
 }
 
-async function getPack(id) {
-  const pack = game.packs.get(id);
-  return pack || null;
-}
-
 async function getAllEquipmentPacks() {
   const packIds = game.settings.get(MODULE, "pack-equipment")
     .split(",")
@@ -642,11 +617,6 @@ async function getAllEquipmentPacks() {
     })
   );
   return packs.filter(Boolean);
-}
-
-async function getIndexWith(pack, fields) {
-  await pack.getIndex({fields});
-  return pack.index;
 }
 
 function nameMatches(actorName, key) {
@@ -707,6 +677,156 @@ function uniqueKeyFromItem(item) {
   return `${src.pack}:${src.id}`;
 }
 
+
+// ------------------ CUSTOM CONTAINERS ------------------
+
+const SETTING_KEY = "customContainersJson";
+
+function CC() {
+  return globalThis?.pf2eAutolootCustom || null;
+}
+
+function isCustomType(typeStr) {
+  return /^custom:/.test(String(typeStr||""));
+}
+
+function readList() {
+    try {
+      const raw = game.settings.get(MODULE, SETTING_KEY) || "[]";
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  }
+  async function writeList(list) {
+    await game.settings.set(MODULE, SETTING_KEY, JSON.stringify(list ?? []));
+  }
+
+  function buildRegexFromPatterns(patterns) {
+    const parts = String(patterns || "")
+      .split(",").map(s => s.trim()).filter(Boolean)
+      .map(s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    return parts.length ? `(?:${parts.join("|")})` : "";
+  }
+
+  function nextDefaultName(base, existing) {
+    const taken = new Set(existing.map(c => c.name));
+    let n = 1;
+    while (taken.has(`${base} ${n}`)) n++;
+    return `${base} ${n}`;
+  }
+
+  function categoriesToString(cats) {
+    const arr = Array.isArray(cats) ? cats : String(cats || "").split(",").map(s=>s.trim());
+    const uniq = [...new Set(arr.filter(Boolean))];
+    return uniq.join(", ");
+  }
+
+  function stringToCategories(s) {
+    return String(s || "")
+      .split(",").map(x => x.trim().toLowerCase())
+      .filter(Boolean);
+  }
+
+  function parseCountRange(s, fallback = [1,5]) {
+    const parts = String(s || "").split(",").map(n=>Number(n.trim())).filter(Number.isFinite);
+    if (parts.length === 2) return [Math.min(parts[0], parts[1]), Math.max(parts[0], parts[1])];
+    return fallback;
+  }
+
+  const API = {
+    list() { return readList(); },
+    async set(list) { await writeList(list); },
+
+    async add() {
+      const base = game.i18n.localize("pf2e-autoloot.custom.containerNoun") || "Contenedor";
+      const list = readList();
+      const name = nextDefaultName(base, list);
+      const id = `c-${Date.now().toString(36)}-${Math.floor(Math.random()*1e6).toString(36)}`;
+      const entry = {
+        id,
+        name,
+        patterns: name,
+        regex: buildRegexFromPatterns(name),
+        categories: "equipment, armor, weapon, consumable, treasure, coins, container",
+        emptyChance: 25,
+        countRange: "1, 5"
+      };
+      list.push(entry);
+      await writeList(list);
+      return entry;
+    },
+
+    async remove(id) {
+      const list = readList().filter(c => c.id !== id);
+      await writeList(list);
+    },
+
+    async update(id, patch = {}) {
+      const list = readList();
+      const idx = list.findIndex(c => c.id === id);
+      if (idx === -1) return;
+      const cur = { ...list[idx], ...patch };
+      
+      if (typeof patch.patterns !== "undefined") {
+        cur.regex = buildRegexFromPatterns(cur.patterns);
+      }
+      
+      if (typeof patch.categories !== "undefined") {
+        cur.categories = categoriesToString(patch.categories);
+      }
+      
+      if (typeof patch.countRange !== "undefined") {
+        const [mn,mx] = parseCountRange(patch.countRange);
+        cur.countRange = `${mn}, ${mx}`;
+      }
+      list[idx] = cur;
+      await writeList(list);
+    },
+
+    matchByName(actorName) {
+      const list = readList();
+      for (const c of list) {
+        const rx = c.regex ? new RegExp(c.regex, "i") : null;
+        if (rx && rx.test(actorName ?? "")) return c;
+      }
+      return null;
+    },
+
+    getById(id) { return readList().find(c => c.id === id) || null; },
+
+    typeStringFor(id) { return `custom:${id}`; },
+    parseType(typeStr) {
+      if (!typeStr || typeof typeStr !== "string") return null;
+      const m = typeStr.match(/^custom:(.+)$/);
+      return m ? (this.getById(m[1]) || null) : null;
+    },
+
+    getCountRangeFor(typeStr) {
+      const def = this.parseType(typeStr);
+      if (!def) return null;
+      return parseCountRange(def.countRange, [1,5]);
+    },
+
+    getAllowedCategoriesFor(typeStr) {
+      const def = this.parseType(typeStr);
+      if (!def) return [];
+      return stringToCategories(def.categories);
+    },
+
+    getEmptyChanceFor(typeStr) {
+      const def = this.parseType(typeStr);
+      if (!def) return null;
+      const n = Number(def.emptyChance);
+      return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 25;
+    },
+
+    allAsPromptOptions() {
+      return readList().map(c => ({ value: this.typeStringFor(c.id), label: c.name }));
+    }
+  };
+
+  if (!window.pf2eAutolootCustom) window.pf2eAutolootCustom = API;
+
 /* ---------------- Preload Cache ---------------- */
 async function preloadCache() {
   const packEquipList = await getAllEquipmentPacks();
@@ -723,7 +843,17 @@ async function preloadCache() {
     "system.level.value",
     "system.traits.rarity", "system.rarity.value",
     "system.price.value", "system.price.per",
-    "system.quantity"
+    "system.quantity",
+
+    "system.traits.value",
+    "system.traits.otherTags",
+
+    "system.group",
+    "system.category",
+    "system.baseItem",
+
+    "system.usage.type",
+    "system.usage.value"
   ];
 
   const equipIndex = [];
@@ -775,13 +905,266 @@ function getContainerTypeByName(name) {
   const isChest  = nameMatches(name, "chest");
   const isPouch  = nameMatches(name, "pouch");
   const isStash  = nameMatches(name, "stash");
-  return isBarrel ? "barrel" : isCrate ? "crate" : isChest ? "chest" : isPouch ? "pouch" : isStash ? "stash" : null;
+  if (isBarrel) return "barrel";
+  if (isCrate)  return "crate";
+  if (isChest)  return "chest";
+  if (isPouch)  return "pouch";
+  if (isStash)  return "stash";
+
+  // Intento custom por nombre
+  const def = CC()?.matchByName?.(name);
+  if (def?.id) return CC().typeStringFor(def.id);
+
+  return null;
+}
+
+function isCustomContainerType(t) {
+  return typeof t === "string" && t.startsWith("custom:");
+}
+
+// === Helpers de tokens ===
+function getTraitSet(entry) {
+  const arr =
+    entry?.system?.traits?.value ??
+    entry?.["system.traits.value"] ??
+    [];
+  return new Set(arr.map(s => String(s).toLowerCase()));
+}
+
+function alchBucketFor(entry) {
+  const sys  = entry.system ?? {};
+  const name = String(entry.name || "");
+  const traits = new Set(
+    (Array.isArray(sys.traits?.value) ? sys.traits.value : [])
+      .map(s => String(s).toLowerCase())
+  );
+
+  const rawOther = sys.traits?.otherTags;
+  const otherTags = new Set(
+    Array.isArray(rawOther)
+      ? rawOther.map(s => String(s).toLowerCase())
+      : (typeof rawOther === "string"
+          ? rawOther.split(",").map(s => s.trim().toLowerCase()).filter(Boolean)
+          : [])
+  );
+
+  const cat  = (sys.category ?? entry["system.category"] ?? "").toLowerCase();
+  const type = entry.type;
+  const tok  = (id) => `equipment:${id}`;
+  const isAlchemical = traits.has("alchemical") || otherTags.has("alchemical");
+
+  if (otherTags.has("alchemical-food"))                   return tok("alchemical-food");
+  if (otherTags.has("herbal"))                            return tok("alchemical-plants");
+  if (otherTags.has("alchemical-tool"))                   return tok("alchemical-tools");
+  if (otherTags.has("bottled-monstrosities"))             return tok("bottled-monstrosities");
+  if (otherTags.has("drugs"))                             return tok("drugs");
+
+  if (cat === "poison"                   || traits.has("poison")) return tok("alchemical-poisons");
+  if (cat === "drug")                                             return tok("drugs");
+  if (cat === "ammunition" || type === "ammo")                    return tok("alchemical-ammunition");
+  if (cat === "bomb"       || traits.has("bomb"))                 return tok("alchemical-bombs");
+  if (cat === "elixir"     || /(^|\W)elixir(\W|$)/i.test(name))   return tok("alchemical-elixirs");
+
+  if (isAlchemical) return tok("alchemical-other");
+  return null;
+}
+
+function getConsumableCategory(e) {
+  const c = e?.system?.category ?? e?.["system.category"];
+  return c ? String(c).toLowerCase() : null;
+}
+
+function buildTokenSet(e) {
+  const tok = new Set();
+  const sys = e.system ?? {};
+  const type = e.type;
+
+  if (type) {
+    tok.add(`type:${type}`);
+    const big =
+      type === "backpack" ? "container" : type;
+    tok.add(`group:${big}`);
+  }
+
+  if (sys.group)     tok.add(`item.system.group:${sys.group}`);
+  if (sys.baseItem)  tok.add(`item.system.baseItem:${sys.baseItem}`);
+  if (sys.category)  tok.add(`item.system.category:${sys.category}`);
+
+  if (type === "armor") {
+    const cat = sys.category ?? sys.armor?.category;
+    if (cat) tok.add(`armor:${cat}`);
+  }
+
+  if (type === "consumable") {
+    tok.add("group:consumable");
+  }
+
+  const ab = alchBucketFor(e);
+  if (ab) {
+    tok.add(ab);
+    tok.add("equipment:alchemical-items");
+  }
+  
+  const usageRaw =
+    sys?.usage?.type ??
+    e?.["system.usage.type"] ??
+    sys?.usage?.value ??
+    e?.["system.usage.value"] ??
+    "";
+  const usage = String(usageRaw).toLowerCase();
+  if (usage === "worn") tok.add("equipment:worn-items");
+
+  if (type === "equipment") {
+    const traits = getTraitSet(e);
+    const forbidden = new Set([
+      "arcane","occult","divine","primal",
+      "magical","invested","alchemical","precious"
+    ]);
+    let isAdv = true;
+    for (const f of forbidden) if (traits.has(f)) { isAdv = false; break; }
+    if (isAdv) tok.add("equipment:adventuring-gear");
+    
+    if (traits.has("precious")) tok.add("equipment:materials");
+    if (traits.has("snare")) tok.add("equipment:snares");
+    if (traits.has("spellheart")) tok.add("equipment:spellhearts");
+    if (traits.has("staff")) tok.add("equipment:staves");
+    if (traits.has("tattoo")) tok.add("equipment:tattoos");
+    if (traits.has("wand")) tok.add("equipment:wands");
+  }
+
+  return tok;
 }
 
 function filterPools(containerType, partyLevel) {
   const cratesOffset = Number(game.settings.get(MODULE, "crateLevelOffset") ?? DEFAULTS.crateLevelOffset);
   let equip = [], kctg = [];
 
+  // ----- CUSTOM -----
+  if (isCustomType(containerType)) {
+    const allowedCats = new Set(CC()?.getAllowedCategoriesFor?.(containerType) || []);
+    const filters     = new Set(CC()?.getFiltersFor?.(containerType) || []);
+
+    const allowedTypes = new Set(["equipment","weapon","armor","shield","consumable","treasure","ammo","container"]);
+    const baseEquip = Cache.equipIndex.filter(e => allowedTypes.has(e.type));
+
+    equip = baseEquip.filter(e => allowedCats.size ? allowedCats.has(e.type) : true);
+
+    if (filters.size) {            
+      const filtersSet = new Set([...filters].map(f => String(f).trim()));
+      const requestedConsumableCats = [...filters]
+        .map(f => f.match(/^item\.system\.category:(.+)$/i))
+        .filter(Boolean)
+        .map(m => m[1].toLowerCase());
+      const wantsConsumableCats = requestedConsumableCats.length > 0;
+
+      const alchLeaves = [...filters].filter(f => /^equipment:alchemical-(?!items$)/.test(f));
+      const hasAlchLeaves = alchLeaves.length > 0;
+      const onlyAlchParent = filters.size === 1 && filters.has("equipment:alchemical-items");
+
+      const wantsOnlyMaterials = filtersSet.size === 1 && filtersSet.has("equipment:materials");
+      const wantsMaterialsAmongOthers = filtersSet.has("equipment:materials");
+      
+      const wantsOnlySnares = filtersSet.size === 1 && filtersSet.has("equipment:snares");
+      const wantsSnaresAmongOthers = filtersSet.has("equipment:snares");
+
+      const wantsOnlySpellhearts = filtersSet.size === 1 && filtersSet.has("equipment:spellhearts");
+      const wantsSpellheartsAmongOthers = filtersSet.has("equipment:spellhearts");
+
+      const wantsOnlyStaves = filtersSet.size === 1 && filtersSet.has("equipment:staves");
+      const wantsStavesAmongOthers = filtersSet.has("equipment:staves");
+
+      const wantsOnlyTattoos = filtersSet.size === 1 && filtersSet.has("equipment:tattoos");
+      const wantsTattoosAmongOthers = filtersSet.has("equipment:tattoos");
+
+      const wantsOnlyWands = filtersSet.size === 1 && filtersSet.has("equipment:wands");
+      const wantsWandsAmongOthers = filtersSet.has("equipment:wands");
+      
+      const wantsOnlyWorn = (filtersSet.size === 1 && filtersSet.has("equipment:worn-items"));
+      const wantsWornAmongOthers = filtersSet.has("equipment:worn-items");
+
+      equip = equip.filter(e => {
+
+      let traitsSet = null;
+      const traits = () => (traitsSet ??= getTraitSet(e));
+
+      if (hasAlchLeaves) {
+        const bucket = alchBucketFor(e);
+        return !!bucket && alchLeaves.includes(bucket);
+      }
+      
+      if (onlyAlchParent) {
+        return !!alchBucketFor(e);
+      }
+      
+      if (wantsOnlyWorn) {
+        const usageRaw =
+          e?.system?.usage?.type ??
+          e?.["system.usage.type"] ??
+          e?.system?.usage?.value ??
+          e?.["system.usage.value"] ??
+          "";
+        return String(usageRaw).toLowerCase() === "worn";
+      }
+
+      if (wantsOnlyMaterials) {
+        if (e.type !== "equipment") return false;
+        return traits().has("precious");
+      }
+
+      if (wantsOnlySnares) {
+        if (e.type !== "equipment") return false;
+        return traits().has("snare");
+      }
+
+      if (wantsOnlySpellhearts) {
+        if (e.type !== "equipment") return false;
+        return traits().has("spellheart");
+      }
+
+      if (wantsOnlyStaves) {
+        if (e.type !== "equipment") return false;
+        return traits().has("staff");
+      }
+
+      if (wantsOnlyTattoos) {
+        if (e.type !== "equipment") return false;
+        return traits().has("tattoo");
+      }
+
+      if (wantsOnlyWands) {
+        if (e.type !== "equipment") return false;
+        return traits().has("wand");
+      }
+      
+      if (wantsConsumableCats) {
+        if (e.type !== "consumable") return false;
+        const cat = getConsumableCategory(e);
+        return !!cat && requestedConsumableCats.includes(cat);
+      }
+      
+      const tokens = buildTokenSet(e);
+
+      if (wantsMaterialsAmongOthers && tokens.has("equipment:materials")) return true;
+      if (wantsSnaresAmongOthers && tokens.has("equipment:snares")) return true;
+      if (wantsSpellheartsAmongOthers && tokens.has("equipment:spellhearts")) return true;
+      if (wantsStavesAmongOthers && tokens.has("equipment:staves")) return true;
+      if (wantsTattoosAmongOthers && tokens.has("equipment:tattoos")) return true;
+      if (wantsWandsAmongOthers && tokens.has("equipment:wands")) return true;
+      if (wantsWornAmongOthers && tokens.has("equipment:worn-items")) return true;
+
+      for (const f of filtersSet) if (tokens.has(f)) return true;
+      return false;
+    });
+    }
+
+    kctg = [];
+
+    const reg = uniqueRegistry();
+    equip = equip.filter(e => !isUnique(e) || !reg[uniqueKey(e)]);
+    return { equip, kctg };
+  }
+
+  // ----- NO CUSTOM  -----
   if (containerType === "barrel") {
     if (Cache.kctgIndex.length) {
       const include = new Set(["Food","Tavern Foods","Fish"]);
@@ -820,9 +1203,10 @@ function filterPools(containerType, partyLevel) {
     kctg = [];
   }
 
+
   const reg = uniqueRegistry();
   equip = equip.filter(e => !isUnique(e) || !reg[uniqueKey(e)]);
-  kctg = kctg.filter(e => !isUnique(e) || !reg[uniqueKey(e)]);
+  kctg  = kctg.filter(e => !isUnique(e) || !reg[uniqueKey(e)]);
   return { equip, kctg };
 }
 
@@ -873,31 +1257,36 @@ function getContainerBudget(containerType, partyLevel) {
 }
 
 function getCountRange(containerType) {
+  if (isCustomContainerType(containerType) && CC()) {
+    const pair = CC().getCountRangeFor?.(containerType);
+    if (Array.isArray(pair) && pair.length === 2) return pair;
+    return [1, 5];
+  }
+
   const raw = game.settings.get(MODULE, `count-${containerType}`);
-  const parts = String(raw).split(",").map(n=>Number(n.trim())).filter(Number.isFinite);
-  let [mn,mx] = parts.length===2 ? [Math.min(parts[0],parts[1]), Math.max(parts[0],parts[1])] : DEFAULTS.counts[containerType];
-  return [mn,mx];
+  const parts = String(raw).split(",").map(n => Number(n.trim())).filter(Number.isFinite);
+  if (parts.length === 2) return [Math.min(parts[0], parts[1]), Math.max(parts[0], parts[1])];
+  return DEFAULTS.counts[containerType];
 }
 
-function getQuotas(containerType, typeCount) {
+function getQuotas(containerType, typeCount) {  
+  const chestQuotas = { ammo: 2, "consumable-ammo": 2, consumable: 6, weapon: 4, armor: 4, shield: 2, treasure: 8, equipment: 8 };
+  if (typeof containerType === "string" && containerType.startsWith("custom:")) {
+    return { ...chestQuotas };
+  }
   switch (containerType) {
-    case "barrel":
-      return { treasure: typeCount, equipment: typeCount };
-    case "crate":
-      return {};
-    case "chest":
-      return { ammo: 2, "consumable-ammo": 2, consumable: 6, weapon: 4, armor: 4, shield: 2, treasure: 8, equipment: 8 };
-    case "pouch":
-      return {};
-    case "stash":
-      return {};
-    default:
-      return {};
+    case "barrel": return { treasure: typeCount, equipment: typeCount };
+    case "crate":  return {};
+    case "chest":  return { ...chestQuotas };
+    case "pouch":  return {};
+    case "stash":  return {};
+    default:       return {};
   }
 }
 
 /* -------------- Core generation -------------- */
 async function generateFor(actor, containerType, opts = {}) {
+
   if (InFlight.has(actor)) { dbg("skip generate: in-flight"); return; }
   InFlight.add(actor);
   try {
@@ -905,11 +1294,18 @@ async function generateFor(actor, containerType, opts = {}) {
     if (already && !opts.ignoreRolled) return;
     if (actor.items?.size) { await actor.setFlag(MODULE, "rolled", true); return; }
 
-    const emptyProb = Number(game.settings.get(MODULE, `empty-${containerType}`)) || 0;
-    const rollEmpty = Math.random() *100;
+    let emptyProb = 0;
+    if (isCustomContainerType(containerType) && CC()) {
+      emptyProb = Number(CC().getEmptyChanceFor?.(containerType) ?? 0);
+    } else {
+      emptyProb = Number(game.settings.get(MODULE, `empty-${containerType}`)) || 0;
+    }
+
+    const rollEmpty = Math.random() * 100;
     if (!opts.ignoreEmpty && rollEmpty < emptyProb) {
       await actor.setFlag(MODULE, "rolled", true);
       await actor.setFlag(MODULE, "empty", true);
+      ui.notifications?.warn(game.i18n.localize("pf2e-autoloot.msg.lootEmpty") || "This loot is empty.");
       return;
     }
 
@@ -922,7 +1318,7 @@ async function generateFor(actor, containerType, opts = {}) {
     if (containerType === "stash") {
       const stashOffset = Number(game.settings.get(MODULE, "stashLevelOffset") ?? DEFAULTS.stashLevelOffset);
       const partyLevel = getAveragePartyLevel();
-      const stashMaxLevel = Math.max(0, partyLevel + stashOffset); 
+      const stashMaxLevel = Math.max(0, partyLevel + stashOffset);
       await generateStash(actor, stashMaxLevel);
       await actor.setFlag(MODULE, "rolled", true);
       await actor.setFlag(MODULE, "containerType", containerType);
@@ -932,6 +1328,18 @@ async function generateFor(actor, containerType, opts = {}) {
 
     const {equip, kctg} = filterPools(containerType, partyLevel);
     let candidates = [...equip, ...kctg];
+
+    let rangeMin = 1, rangeMax = 5;
+    
+    if (isCustomType(containerType) && CC()) {
+      emptyProb = Number(CC().getEmptyChanceFor?.(containerType) ?? 0);
+      const pair = CC().getCountRangeFor?.(containerType) || [1, 5];
+      rangeMin = pair[0];
+      rangeMax = pair[1];
+    } else {
+      emptyProb = Number(game.settings.get(MODULE, `empty-${containerType}`)) || 0;
+      [rangeMin, rangeMax] = getCountRange(containerType);
+    }
 
     const avoid = (game.settings.get(MODULE, "avoidNamesRegex") || "").trim();
     if (avoid) {
@@ -947,6 +1355,7 @@ async function generateFor(actor, containerType, opts = {}) {
     if (!candidates.length) {
       await actor.setFlag(MODULE, "rolled", true);
       await actor.setFlag(MODULE, "empty", true);
+      ui.notifications?.warn(game.i18n.localize("pf2e-autoloot.msg.lootEmpty") || "This loot is empty.");
       return;
     }
 
@@ -955,7 +1364,18 @@ async function generateFor(actor, containerType, opts = {}) {
       leqBudget: candidates.filter(e => priceFromIndex(e) > 0 && priceFromIndex(e) <= budget.gp).length
     });
 
-    const [minTypes, maxTypes] = getCountRange(containerType);
+    if (isCustomContainerType(containerType)) {
+      dbg("custom candidates", {
+        total: candidates.length,
+        sample: candidates.slice(0, 10).map(e => ({
+          name: e.name, type: e.type,
+          cat: e.system?.category, grp: e.system?.group, base: e.system?.baseItem
+        }))
+      });
+    }
+
+    const minTypes = rangeMin;
+    const maxTypes = rangeMax;
     const typeCount = Math.max(minTypes, Math.min(maxTypes, minTypes + Math.floor(Math.random()*(maxTypes-minTypes+1))));
 
     const weights = rarityWeightFromSetting();
@@ -1141,17 +1561,21 @@ async function generateFor(actor, containerType, opts = {}) {
     }
   }
 
-  if (containerType === "chest") {
+  const isCustom = typeof containerType === "string" && containerType.startsWith("custom:");
+  let allowCoins = false;
+  if (isCustom) {
+    allowCoins = !!CC()?.getAllowedCategoriesFor?.(containerType)?.includes("coins");
+  }
+
+  if (containerType === "chest" || (isCustom && allowCoins)) {
     const perAddPC = PF2E_CURRENCY_PER_ADDITIONAL_PC[Math.max(1, Math.min(20, partyLevel))] || 0;
-    const extraPCs = Math.max(0, getPartySize() - 4); // PCs adicionales sobre 4
+    const extraPCs = Math.max(0, getPartySize() - 4);
     const seedCoins = perAddPC * extraPCs;
-
     const leftover = Math.floor(Math.max(0, budget.gp || 0));
-
     await mintCoinsFromBudget(seedCoins + leftover, toCreate);
-
     budget.gp = 0;
   }
+
     const startBudget = budget.gp;
 
     dbg("loot summary", {
@@ -1166,6 +1590,7 @@ async function generateFor(actor, containerType, opts = {}) {
     await actor.setFlag(MODULE, "rolled", true);
     await actor.setFlag(MODULE, "containerType", containerType);
     await actor.setFlag(MODULE, "rollTime", Date.now());
+    ui.notifications?.info(game.i18n.localize("pf2e-autoloot.msg.lootGenerated") || "Loot has been generated.");
   } finally {
     InFlight.delete(actor);
   }
@@ -1173,6 +1598,11 @@ async function generateFor(actor, containerType, opts = {}) {
 
 async function promptContainerType() {
   const L = (k) => game.i18n.localize(k);
+
+  const customOpts = (CC()?.allAsPromptOptions?.() ?? [])
+    .map(o => `<option value="${o.value}">${foundry.utils.escapeHTML(o.label)}</option>`)
+    .join("");
+
   return new Promise((resolve) => {
     new Dialog({
       title: L("pf2e-autoloot.dialog.containerType.title"),
@@ -1183,20 +1613,18 @@ async function promptContainerType() {
           <option value="chest">${L("pf2e-autoloot.container.chest")}</option>
           <option value="pouch">${L("pf2e-autoloot.container.pouch")}</option>
           <option value="stash">${L("pf2e-autoloot.container.stash")}</option>
+          ${customOpts ? `<optgroup label="${L("Custom") || "Custom"}">${customOpts}</optgroup>` : ""}
         </select>
       </div>`,
       buttons: {
-        ok: {
-          label: "Ok",
-          icon: '<i class="fas fa-dice"></i>',
-          callback: html => resolve(html.find("#ptype").val())
-        },
+        ok: { label: "Ok", icon: '<i class="fas fa-dice"></i>', callback: html => resolve(html.find("#ptype").val()) },
         cancel: { label: "Cancelar", callback: () => resolve(null) }
       },
       default: "ok"
     }).render(true);
   });
 }
+
 
 async function rerollFor(actor, forcedType = null, { promptIfUnknown = false, ignoreName = false } = {}) {
   ManualRoll.add(actor);
@@ -1268,3 +1696,4 @@ Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
     console.error(`${MODULE} header buttons error`, e);
   }
 });
+
