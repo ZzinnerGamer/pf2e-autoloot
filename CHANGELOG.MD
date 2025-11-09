@@ -1,3 +1,7 @@
+# PF2e Autoloot [2.0.1]
+
+Deleted duplicated filters
+
 # PF2e Autoloot [2.0.0]
 
 ## Hightlights
