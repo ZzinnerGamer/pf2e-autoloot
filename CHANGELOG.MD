@@ -1,3 +1,17 @@
+# PF2e Autoloot [2.0.0]
+
+##Hightlights
+* Custom Loot
+Custom loot is a powerful new feature that allows you as GM to setup your dream container. A box filled with just sharp weapons? Or maybe a hidden cache full of random shiny equipment? Or uhhh a place with just light bardings?????
+
+* New Settings Menu
+
+## Know Issues
+* There are item category like Alchemical Tools, Animals their Gear, Runes, and multiple other categories that cannot be parsed without setting them item by item.
+* Assistive items are in adventuring gear category
+* Personal opinion, I dont feel like Artifacts, Contracts, Intelligent Items, Relics, needs to be looteable by normal means with this module
+* Following Archives of Nethys' equipment tab: Alchemical Tools, Animals and Gear, Banners, Censers, Cursed Items, Customizations, Figurehead, Grafts, Grimoires, Held Items, High Tech, Other, Runes (for now), just because of issue 1, those items are only included in "Equipment" category. (Exception: Alchemical Tools are included in Alchemical Items category too)
+
 # PF2e Autoloot [1.1.4]
 
 * Added Polish localization
