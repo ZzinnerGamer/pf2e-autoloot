@@ -1,3 +1,7 @@
+# PF2e Autoloot [2.0.2]
+
+Fixed module.json
+
 # PF2e Autoloot [2.0.1]
 
 Deleted duplicated filters
