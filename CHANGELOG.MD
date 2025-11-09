@@ -4,6 +4,8 @@ Deleted duplicated filters
 
 # PF2e Autoloot [2.0.0]
 
+[opera_sy4LtGcRhH.webm](https://github.com/user-attachments/assets/4c0ef17b-73a7-4681-8d2f-cc93b7c68dc6)
+
 ## Hightlights
 * Custom Loot
 Custom loot is a powerful new feature that allows you as GM to setup your dream container. A box filled with just sharp weapons? Or maybe a hidden cache full of random shiny equipment? Or uhhh a place with just light bardings?????
