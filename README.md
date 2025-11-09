@@ -12,6 +12,7 @@ A lightweight Foundry VTT module for **Pathfinder 2e** that automatically popula
 * Unique item registry to avoid duplicating the same unique across rolls.
 * Optional KCTG compendium integration for flavor items.
 * “Roll Loot” button on loot sheets; auto-generation on open (toggleable).
+* Custom loot containers where you can setup a container to have special configurable loot.
 
 ## How loot is calculated
 
