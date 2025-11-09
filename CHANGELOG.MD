@@ -1,6 +1,6 @@
 # PF2e Autoloot [2.0.0]
 
-##Hightlights
+## Hightlights
 * Custom Loot
 Custom loot is a powerful new feature that allows you as GM to setup your dream container. A box filled with just sharp weapons? Or maybe a hidden cache full of random shiny equipment? Or uhhh a place with just light bardings?????
 
