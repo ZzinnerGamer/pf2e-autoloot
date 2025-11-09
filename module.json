@@ -10,7 +10,7 @@
     "canUpload": true
   },
   "esmodules": [
-    "scripts/pf2e-autoloot.js"
+    "scripts/pf2e-autoloot.js", "scripts/option-menu.js", "scripts/custom-containter.js", "vendor/tagify/tagify.js"
   ],
   "languages": [
     {
