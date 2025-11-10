@@ -1,3 +1,7 @@
+# PF2e Autoloot [2.0.3]
+
+Updated English, Polish, French and Spanish localizations.
+
 # PF2e Autoloot [2.0.2]
 
 Fixed module.json
