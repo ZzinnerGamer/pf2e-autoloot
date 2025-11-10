@@ -57,7 +57,7 @@
   "pf2e-autoloot.container.pouch": "Pouch",
   "pf2e-autoloot.container.stash": "Stash",
   
-  "pf2e-autoloot.custom.containerNoun": "Contenedor",
+  "pf2e-autoloot.custom.containerNoun": "Container",
   "pf2e-autoloot.settings.custom.title": "Custom Containers",
   "pf2e-autoloot.settings.custom.add": "Add container",
   "pf2e-autoloot.settings.custom.empty": "No custom containers yet.",
