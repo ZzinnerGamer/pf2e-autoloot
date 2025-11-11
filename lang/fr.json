@@ -43,6 +43,7 @@
   "pf2e-autoloot.container.chest": "Coffre",
   "pf2e-autoloot.container.pouch": "Sac",
   "pf2e-autoloot.container.stash": "Réserve",
+  "pf2e-autoloot.custom.containerNoun": "Contenant",
   "pf2e-autoloot.settings.custom.title": "Contenants personnalisés",
   "pf2e-autoloot.settings.custom.add": "Ajouter un contenant",
   "pf2e-autoloot.settings.custom.empty": "Pas encore de contenant personnalisé.",
@@ -55,6 +56,7 @@
   "pf2e-autoloot.settings.custom.countRange.name": "Plage de nombre d'objets",
   "pf2e-autoloot.settings.custom.countRange.hint": "Min, Max - par exemple « 1, 5 ».",
   "pf2e-autoloot.msg.preloaded": "Butin automatique : cache préchargé.",
+  "pf2e-autoloot.msg.uniqueCleared": "Butin automatique : enregistrements uniques effacés.",
   "pf2e-autoloot.msg.lootGenerated": "Le butin a été généré.",
   "pf2e-autoloot.msg.lootEmpty": "Le contenant est vide."
 }
