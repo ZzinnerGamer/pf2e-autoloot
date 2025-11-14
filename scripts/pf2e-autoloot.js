@@ -1272,7 +1272,7 @@ function getCountRange(containerType) {
 function getQuotas(containerType, typeCount) {  
   const chestQuotas = { ammo: 2, "consumable-ammo": 2, consumable: 6, weapon: 4, armor: 4, shield: 2, treasure: 8, equipment: 8 };
   if (typeof containerType === "string" && containerType.startsWith("custom:")) {
-    return { ...chestQuotas };
+    return {};
   }
   switch (containerType) {
     case "barrel": return { treasure: typeCount, equipment: typeCount };
