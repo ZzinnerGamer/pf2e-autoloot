@@ -1,4 +1,4 @@
-ª PF2e Autoloot [2.1.0]
+# PF2e Autoloot [2.1.0]
 
 - Added Starfinder Second Edition Compatibility
 - Separated pools of custom containers by system availability (no firearms on sf2e system or no cryo weapons on pf2e system)
