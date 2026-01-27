@@ -1,3 +1,11 @@
+ª PF2e Autoloot [2.1.0]
+
+- Added Starfinder Second Edition Compatibility
+- Separated pools of custom containers by system availability (no firearms on sf2e system or no cryo weapons on pf2e system)
+- Added missing tags for custom containers
+- Added SF2e Anachronism Compatibility, that means firearms on sf2e system (and prepared cryo weapons for the future PF2e Anachronism too 😉)
+- Coins now are generated again (i hate you 7.9.0 this cost me like 7 hours)
+
 # PF2e Autoloot [2.0.3]
 
 Updated English, Polish, French and Spanish localizations.
