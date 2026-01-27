@@ -38,7 +38,17 @@
     "systems": [
       {
         "id": "pf2e",
-        "type": "system"
+        "type": "system",
+        "compatibility": {
+          "minimum": "7.9.1"
+        }
+      },
+      {
+        "id": "sf2e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "0.0.3"
+        }
       }
     ],    
     "recommends": [
