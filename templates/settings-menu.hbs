@@ -113,6 +113,7 @@
       </fieldset>
     {{/if}}
 
+
     {{!-- ======================= --}}
 {{!-- Pestaña Custom --}}
 {{!-- ======================= --}}
@@ -134,8 +135,9 @@
       <div class="notes" style="opacity:.8;">{{localize "pf2e-autoloot.settings.custom.empty"}}</div>
     {{/if}}
 
+    <div class="custom-containers">
     {{#each customContainers as |c|}}
-      <fieldset data-custom-id="{{c.id}}" style="margin-top:10px; border-radius:8px; padding:8px;">
+      <fieldset class="custom-container" data-custom-id="{{c.id}}" data-custom-name="{{c.name}}" style="margin-top:10px; border-radius:8px; padding:8px;">
         <legend style="font-weight:700; letter-spacing:.2px; padding:0 4px;">{{c.name}}</legend>
 
         <div class="pv-form-row" style="margin-bottom:8px; border-bottom:1px solid #6868684d; padding:6px 0;">
@@ -153,7 +155,6 @@
         <label>{{localize "pf2e-autoloot.settings.custom.categories.name"}}</label>
         <div class="notes" style="opacity:.8;">{{localize "pf2e-autoloot.settings.custom.categories.hint"}}</div>
 
-        {{!-- Tagify: guardamos/mostramos como JSON en value --}}
         <input type="text"
                 data-tagify="filters"
                 data-id="{{c.id}}"
@@ -188,10 +189,9 @@
         </div>
       </fieldset>
     {{/each}}
+    </div>
   </fieldset>
 {{/if}}
-
-
 
   </div>
 
