@@ -69,6 +69,12 @@
   "pf2e-autoloot.settings.custom.emptyChance.hint": "Probability (0–100%) that the container spawns empty.",
   "pf2e-autoloot.settings.custom.countRange.name": "Item count range",
   "pf2e-autoloot.settings.custom.countRange.hint": "Min, Max — e.g. \"1, 5\".",
+  "pf2e-autoloot.settings.custom.import.label": "Paste JSON",
+  "pf2e-autoloot.settings.custom.import.hint": "You can paste any JSON content here if you preffer to do it manually. Make sure it matches the exact architecture.\nMerge: It will combine the current custom containers, if any, prioritizing the existing ones..\nReplace: It will DELETE ALL your custom containers and replace them with the new ones.",
+  "pf2e-autoloot.settings.custom.import.file": "JSON File",
+  "pf2e-autoloot.settings.custom.import.mode": "Import Mode",
+  "pf2e-autoloot.settings.custom.import.merge": "Merge",
+  "pf2e-autoloot.settings.custom.import.replace": "Replace",
 
   "pf2e-autoloot.msg.preloaded": "Autoloot: preloaded cache.",
   "pf2e-autoloot.msg.uniqueCleared": "Autoloot: unique records cleared.",
@@ -76,3 +82,4 @@
   "pf2e-autoloot.msg.lootGenerated" : "Loot has been generated.",
   "pf2e-autoloot.msg.lootEmpty" : "The container is empty."
 }
+
