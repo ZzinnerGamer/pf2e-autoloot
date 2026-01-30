@@ -206,8 +206,10 @@ function actorHasAnyCurrency(actor) {
   if (!c) return false;
 
   // PF2E (copperValue) + SF2E (credits/upb)
-  return (Number(c.copperValue) || 0) > 0 ||
-  CURRENCY_KEYS.some(k => (Number(c[k]) || 0) > 0);
+  const copperValue = Number(c.copperValue) || 0;
+  if (copperValue > 0) return true;
+
+  return CURRENCY_KEYS.some(k => (Number(c[k]) || 0) > 0);
 }
 
 async function addCurrencyToActor(actor, currencyObj) {
@@ -355,20 +357,20 @@ Hooks.once("init", () => {
 
   game.settings.registerMenu(MODULE, "autolootSettingsMenu", {
     name: game.i18n.localize("pf2e-autoloot.settings.menu.name"),
-                             label: game.i18n.localize("pf2e-autoloot.settings.menu.name"),
-                             icon: "fas fa-box-open",
-                             type: AutolootConfigApp,
-                             restricted: true
+    label: game.i18n.localize("pf2e-autoloot.settings.menu.name"),
+    icon: "fas fa-box-open",
+    type: AutolootConfigApp,
+    restricted: true
   });
 
   game.settings.register(MODULE, "pack-equipment", {
     name: L("pf2e-autoloot.settings.pack-equipment.name"),
-                         hint: L("pf2e-autoloot.settings.pack-equipment.hint"),
-                         scope: "world",
-                         config: false,
-                         type: String,
-                         default: DEFAULTS.packs.equipment,
-                           requiresReload: true
+    hint: L("pf2e-autoloot.settings.pack-equipment.hint"),
+    scope: "world",
+    config: false,
+    type: String,
+    default: DEFAULTS.packs.equipment,
+      requiresReload: true
   });
 
   game.settings.register(MODULE, "pack-kctg", {
@@ -378,177 +380,185 @@ Hooks.once("init", () => {
 
   game.settings.register(MODULE, "autoloot", {
     name: L("pf2e-autoloot.settings.autoloot.name"),
-                         hint: L("pf2e-autoloot.settings.autoloot.hint"),
-                         scope: "world", config: false, default: false, type: Boolean
+    hint: L("pf2e-autoloot.settings.autoloot.hint"),
+    scope: "world", config: false, default: false, type: Boolean
   });
 
   game.settings.register(MODULE, "avoidNamesRegex", {
     name: L("pf2e-autoloot.settings.avoidNamesRegex.name"),
-                         hint: L("pf2e-autoloot.settings.avoidNamesRegex.hint"),
-                         scope: "world", config: false, type: String, default: ""
+    hint: L("pf2e-autoloot.settings.avoidNamesRegex.hint"),
+    scope: "world", config: false, type: String, default: ""
   });
 
   game.settings.register(MODULE, `name-barrel`, {
     name: L("pf2e-autoloot.settings.name-key.barrel.name"),
-                         hint: L("pf2e-autoloot.settings.name-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.names.barrel, type: String
+    hint: L("pf2e-autoloot.settings.name-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.names.barrel, type: String
   });
 
   game.settings.register(MODULE, `empty-barrel`, {
     name: L("pf2e-autoloot.settings.empty-key.barrel.name"),
-                         hint: L("pf2e-autoloot.settings.empty-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.emptyChance.barrel, type: Number,
-                         range: { min: 0, max: 100, step: 1 }
+    hint: L("pf2e-autoloot.settings.empty-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.emptyChance.barrel, type: Number,
+    range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, `count-barrel`, {
     name: L("pf2e-autoloot.settings.count-key.barrel.name"),
-                         hint: L("pf2e-autoloot.settings.count-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.counts.barrel.join(","), type: String
+    hint: L("pf2e-autoloot.settings.count-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.counts.barrel.join(","), type: String
   });
 
   game.settings.register(MODULE, `name-crate`, {
     name: L("pf2e-autoloot.settings.name-key.crate.name"),
-                         hint: L("pf2e-autoloot.settings.name-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.names.crate, type: String
+    hint: L("pf2e-autoloot.settings.name-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.names.crate, type: String
   });
 
   game.settings.register(MODULE, `empty-crate`, {
     name: L("pf2e-autoloot.settings.empty-key.crate.name"),
-                         hint: L("pf2e-autoloot.settings.empty-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.emptyChance.crate, type: Number,
-                         range: { min: 0, max: 100, step: 1 }
+    hint: L("pf2e-autoloot.settings.empty-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.emptyChance.crate, type: Number,
+    range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, `count-crate`, {
     name: L("pf2e-autoloot.settings.count-key.crate.name"),
-                         hint: L("pf2e-autoloot.settings.count-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.counts.crate.join(","), type: String
+    hint: L("pf2e-autoloot.settings.count-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.counts.crate.join(","), type: String
   });
 
   game.settings.register(MODULE, "crateLevelOffset", {
     name: L("pf2e-autoloot.settings.crateLevelOffset.name"),
-                         hint: L("pf2e-autoloot.settings.crateLevelOffset.hint"),
-                         scope: "world", config: false, default: DEFAULTS.crateLevelOffset, type: Number, range:{min:-10,max:10,step:1}
+    hint: L("pf2e-autoloot.settings.crateLevelOffset.hint"),
+    scope: "world", config: false, default: DEFAULTS.crateLevelOffset, type: Number, range:{min:-10,max:10,step:1}
   });
 
   game.settings.register(MODULE, `name-chest`, {
     name: L("pf2e-autoloot.settings.name-key.chest.name"),
-                         hint: L("pf2e-autoloot.settings.name-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.names.chest, type: String
+    hint: L("pf2e-autoloot.settings.name-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.names.chest, type: String
   });
 
   game.settings.register(MODULE, `empty-chest`, {
     name: L("pf2e-autoloot.settings.empty-key.chest.name"),
-                         hint: L("pf2e-autoloot.settings.empty-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.emptyChance.chest, type: Number,
-                         range: { min: 0, max: 100, step: 1 }
+    hint: L("pf2e-autoloot.settings.empty-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.emptyChance.chest, type: Number,
+    range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, `count-chest`, {
     name: L("pf2e-autoloot.settings.count-key.chest.name"),
-                         hint: L("pf2e-autoloot.settings.count-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.counts.chest.join(","), type: String
+    hint: L("pf2e-autoloot.settings.count-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.counts.chest.join(","), type: String
   });
 
   game.settings.register(MODULE, `minimumChestLevelOffset`, {
     name: L("pf2e-autoloot.settings.minimumChestLevelOffset.name"),
-                         hint: L("pf2e-autoloot.settings.minimumChestLevelOffset.hint"),
-                         scope: "world", config: false, default: DEFAULTS.minimumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
+    hint: L("pf2e-autoloot.settings.minimumChestLevelOffset.hint"),
+    scope: "world", config: false, default: DEFAULTS.minimumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
   });
 
   game.settings.register(MODULE, `maximumChestLevelOffset`, {
     name: L("pf2e-autoloot.settings.maximumChestLevelOffset.name"),
-                         hint: L("pf2e-autoloot.settings.maximumChestLevelOffset.hint"),
-                         scope: "world", config: false, default: DEFAULTS.maximumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
+    hint: L("pf2e-autoloot.settings.maximumChestLevelOffset.hint"),
+    scope: "world", config: false, default: DEFAULTS.maximumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
   });
 
   game.settings.register(MODULE, `name-pouch`, {
     name: L("pf2e-autoloot.settings.name-key.pouch.name"),
-                         hint: L("pf2e-autoloot.settings.name-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.names.pouch, type: String
+    hint: L("pf2e-autoloot.settings.name-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.names.pouch, type: String
   });
 
   game.settings.register(MODULE, `empty-pouch`, {
     name: L("pf2e-autoloot.settings.empty-key.pouch.name"),
-                         hint: L("pf2e-autoloot.settings.empty-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.emptyChance.pouch, type: Number,
-                         range: { min: 0, max: 100, step: 1 }
+    hint: L("pf2e-autoloot.settings.empty-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.emptyChance.pouch, type: Number,
+    range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, `count-pouch`, {
     name: L("pf2e-autoloot.settings.count-key.pouch.name"),
-                         hint: L("pf2e-autoloot.settings.count-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.counts.pouch.join(","), type: String
+    hint: L("pf2e-autoloot.settings.count-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.counts.pouch.join(","), type: String
   });
 
   game.settings.register(MODULE, `name-stash`, {
     name: L("pf2e-autoloot.settings.name-key.stash.name"),
-                         hint: L("pf2e-autoloot.settings.name-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.names.stash, type: String
+    hint: L("pf2e-autoloot.settings.name-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.names.stash, type: String
   });
 
   game.settings.register(MODULE, `empty-stash`, {
     name: L("pf2e-autoloot.settings.empty-key.stash.name"),
-                         hint: L("pf2e-autoloot.settings.empty-key.hint"),
-                         scope: "world", config: false, default: DEFAULTS.emptyChance.stash, type: Number,
-                         range: { min: 0, max: 100, step: 1 }
+    hint: L("pf2e-autoloot.settings.empty-key.hint"),
+    scope: "world", config: false, default: DEFAULTS.emptyChance.stash, type: Number,
+    range: { min: 0, max: 100, step: 1 }
   });
 
   game.settings.register(MODULE, "stashLevelOffset", {
     name: L("pf2e-autoloot.settings.stashLevelOffset.name"),
-                         hint: L("pf2e-autoloot.settings.stashLevelOffset.hint"),
-                         scope: "world", config: false, default: DEFAULTS.stashLevelOffset, type: Number, range:{min:-10,max:10,step:1}
+    hint: L("pf2e-autoloot.settings.stashLevelOffset.hint"),
+    scope: "world", config: false, default: DEFAULTS.stashLevelOffset, type: Number, range:{min:-10,max:10,step:1}
   });
 
   game.settings.register(MODULE, "rarityWeightsJson", {
     name: L("pf2e-autoloot.settings.rarityWeightsJson.name"),
-                         hint: L("pf2e-autoloot.settings.rarityWeightsJson.hint"),
-                         scope: "world", config: false, type: String,
-                         default: JSON.stringify(DEFAULTS.rarityWeights)
+    hint: L("pf2e-autoloot.settings.rarityWeightsJson.hint"),
+    scope: "world", config: false, type: String,
+    default: JSON.stringify(DEFAULTS.rarityWeights)
   });
 
   game.settings.register(MODULE, "maxStack", {
     name: L("pf2e-autoloot.settings.maxStack.name"),
-                         scope: "world", config: false, type: Number, default: DEFAULTS.maxStack, range:{min:1,max:50,step:1}
+    scope: "world", config: false, type: Number, default: DEFAULTS.maxStack, range:{min:1,max:50,step:1}
   });
 
   game.settings.register(MODULE, "favorQuantity", {
     name: L("pf2e-autoloot.settings.favorQuantity.name"),
-                         scope: "world", config: false, type: Boolean, default: true
+    scope: "world", config: false, type: Boolean, default: true
   });
 
   game.settings.register(MODULE, "budgetFraction", {
     name: L("pf2e-autoloot.settings.budgetFraction.name"),
-                         hint: L("pf2e-autoloot.settings.budgetFraction.hint"),
-                         scope: "world", config: false, type: Number, default: DEFAULTS.budgetFraction, range:{min:0.01,max:1,step:0.01}
+    hint: L("pf2e-autoloot.settings.budgetFraction.hint"),
+    scope: "world", config: false, type: Number, default: DEFAULTS.budgetFraction, range:{min:0.01,max:1,step:0.01}
   });
 
   game.settings.register(MODULE, "preloadOnReady", {
     name: game.i18n.localize("pf2e-autoloot.settings.preloadOnReady.name"),
-                         hint: game.i18n.localize("pf2e-autoloot.settings.preloadOnReady.hint"),
-                         scope: "world",
-                         config: false,
-                         type: Boolean,
-                         default: DEFAULTS.preloadOnReady
+    hint: game.i18n.localize("pf2e-autoloot.settings.preloadOnReady.hint"),
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: DEFAULTS.preloadOnReady
   });
 
   game.settings.register(MODULE, "uniqueRegistryJson", {
     name: L("pf2e-autoloot.settings.uniqueRegistryJson.name"),
-                         scope: "world", config: false, type: String, default: "{}"
+    scope: "world", config: false, type: String, default: "{}"
   });
 
   game.settings.register(MODULE, "customContainersJson", {
     name: L("pf2e-autoloot.settings.custom.title"),
-                         scope: "world",
-                         config: false,
-                         type: String,
-                         default: "[]"
+    scope: "world",
+    config: false,
+    type: String,
+    default: "[]"
   });
 
   game.settings.register(MODULE, "debug", {
     name: "Debug",
     scope: "world", config: false, default: false, type: Boolean
+  });
+
+  game.settings.register(MODULE, "customContainersJsonBackup", {
+    name: "Custom Containers Backup",
+    scope: "world",
+    config: false,
+    type: String,
+    default: ""
   });
 });
 
@@ -1824,29 +1834,44 @@ async function promptContainerType() {
   const L = (k) => game.i18n.localize(k);
 
   const customOpts = (CC()?.allAsPromptOptions?.() ?? [])
-  .map(o => `<option value="${o.value}">${foundry.utils.escapeHTML(o.label)}</option>`)
-  .join("");
+    .map(o => `<option value="${o.value}">${foundry.utils.escapeHTML(o.label)}</option>`)
+    .join("");
 
-  return new Promise((resolve) => {
-    new Dialog({
-      title: L("pf2e-autoloot.dialog.containerType.title"),
-               content: `<div class="form-group">
-               <select id="ptype" style="width:100%">
-               <option value="barrel">${L("pf2e-autoloot.container.barrel")}</option>
-               <option value="crate">${L("pf2e-autoloot.container.crate")}</option>
-               <option value="chest">${L("pf2e-autoloot.container.chest")}</option>
-               <option value="pouch">${L("pf2e-autoloot.container.pouch")}</option>
-               <option value="stash">${L("pf2e-autoloot.container.stash")}</option>
-               ${customOpts ? `<optgroup label="${L("Custom") || "Custom"}">${customOpts}</optgroup>` : ""}
-               </select>
-               </div>`,
-               buttons: {
-                 ok: { label: "Ok", icon: '<i class="fas fa-dice"></i>', callback: html => resolve(html.find("#ptype").val()) },
-               cancel: { label: "Cancelar", callback: () => resolve(null) }
-               },
-               default: "ok"
-    }).render(true);
+  const content = `
+    <div class="form-group">
+      <select id="ptype" style="width:100%">
+        <option value="barrel">${L("pf2e-autoloot.container.barrel")}</option>
+        <option value="crate">${L("pf2e-autoloot.container.crate")}</option>
+        <option value="chest">${L("pf2e-autoloot.container.chest")}</option>
+        <option value="pouch">${L("pf2e-autoloot.container.pouch")}</option>
+        <option value="stash">${L("pf2e-autoloot.container.stash")}</option>
+        ${customOpts ? `<optgroup label="${L("Custom") || "Custom"}">${customOpts}</optgroup>` : ""}
+      </select>
+    </div>
+  `;
+
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: L("pf2e-autoloot.dialog.containerType.title") },
+    content,
+    buttons: [
+      {
+        action: "ok",
+        label: "Ok",
+        icon: "fas fa-dice",
+        default: true,
+        callback: (_event, _button, dialog) => {
+          return dialog.element.querySelector("#ptype")?.value ?? null;
+        },
+      },
+      {
+        action: "cancel",
+        label: "Cancelar",
+        callback: () => null,
+      },
+    ],
   });
+
+  return result ?? null;
 }
 
 
@@ -1888,24 +1913,29 @@ async function rerollFor(actor, forcedType = null, { promptIfUnknown = false, ig
 }
 
 /* -------------- Hooks -------------- */
-Hooks.on("renderActorSheet", async (app, html, data) => {
-  try {
-    const actor = app.actor;
-    if (!actor || actor.type !== "loot") return;
+function tryAutolootFromSheet(app) {
+  const actor = app?.actor;
+  if (!actor || actor.type !== "loot") return;
 
-    if (!game.settings.get(MODULE, "autoloot")) {
-      dbg("autoloot disabled; skip");
-      return;
-    }
-
-    if (ManualRoll.has(actor)) { dbg("skip autogen: manual roll"); return; }
-    const type = getContainerTypeByName(actor.name ?? "");
-    if (!type) return;
-    await generateFor(actor, type, { ignoreEmpty: false, ignoreRolled: false });
-  } catch (e) {
-    console.error(`${MODULE} error`, e);
+  if (!game.settings.get(MODULE, "autoloot")) {
+    dbg("autoloot disabled; skip");
+    return;
   }
-});
+
+  if (ManualRoll.has(actor)) {
+    dbg("skip autogen: manual roll");
+    return;
+  }
+
+  const type = getContainerTypeByName(actor.name ?? "");
+  if (!type) return;
+
+  generateFor(actor, type, { ignoreEmpty: false, ignoreRolled: false }).catch(err => {
+    console.error(`${MODULE} autoloot error`, err);
+  });
+}
+
+Hooks.on("renderActorSheet", tryAutolootFromSheet);
 
 Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
   try {
