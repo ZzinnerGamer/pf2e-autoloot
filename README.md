@@ -54,7 +54,7 @@ https://github.com/user-attachments/assets/aab40104-b5da-47b8-937c-651779a485b1
 
 ## Compatibility
 
-* System: **Pathfinder 2e** for Foundry VTT.
+* System: **Pathfinder 2e** or **Starfinder 2e** for Foundry VTT.
 * Works with PF2e equipment SRD compendium; optionally mixes in KCTG items for ambience.
 
 ## Credits
