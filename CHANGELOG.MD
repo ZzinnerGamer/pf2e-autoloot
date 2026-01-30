@@ -1,3 +1,11 @@
+# PF2e Autoloot [2.2.0]
+
+- Fixed automatic loot generation on sheet opening
+- Added Import/Export custom containers
+   - Import has 2 modes, Replace and Merge.
+- Added reordering containers via drag&drop
+- New custom containers will always appear at the top of the dialog
+
 # PF2e Autoloot [2.1.0]
 
 - Added Starfinder Second Edition Compatibility
