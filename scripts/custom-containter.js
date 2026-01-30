@@ -123,6 +123,7 @@ const FILTER_CATALOG = [
   { id: "item.system.category:toolkit",                 label: "Toolkit",                group: "Consumables",                                 parent: "group:consumable",       anyOf: [{ systems: ["pf2e"] }, { systems: ["sf2e"], modules: ["pf2e-anachronism"] }] },
   { id: "item.system.category:wand",                    label: "Wand",                   group: "Consumables",                                 parent: "group:consumable",       anyOf: [{ systems: ["pf2e"] }, { systems: ["sf2e"], modules: ["pf2e-anachronism"] }] },
 
+  // ==== Shields ====
   { id: "group:shield",                                 label: "Shields",             group: "Shields",                         kind: "major" },
   { id: "item.system.baseItem:buckler",                 label: "Buckler",             group: "Shields",                                        parent: "group:shield",      anyOf: [{ systems: ["pf2e"] }, { systems: ["sf2e"], modules: ["pf2e-anachronism"] }] },
   { id: "item.system.baseItem:casters-targe",           label: "Caster's Targe",      group: "Shields",                                        parent: "group:shield",      anyOf: [{ systems: ["pf2e"] }, { systems: ["sf2e"], modules: ["pf2e-anachronism"] }] },
@@ -185,16 +186,129 @@ const FILTER_CATALOG = [
 ];
 
 /* ===========================
- * Storage
+ * Storage (WORLD) + Backups/Migración
  * =========================== */
 const KEY = "customContainersJson";
+const KEY_BACKUP = "customContainersJsonBackup";
+
+// Raw readers that can look into storages even if scope changed in older versions
+function _storageGet(scope, settingKey) {
+  try {
+    const store = game.settings?.storage?.get?.(scope);
+    if (!store) return null;
+    // Some storages expose getItem(), others get()
+    return (store.getItem?.(`${MODULE}.${settingKey}`) ?? store.get?.(`${MODULE}.${settingKey}`) ?? null);
+  } catch {
+    return null;
+  }
+}
+
+function _tryParseList(raw) {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && Array.isArray(parsed.containers)) return parsed.containers;
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
+function _normalizeContainer(c = {}, idx = 0) {
+  const out = { ...c };
+  if (!out.id) out.id = `c-legacy-${idx}-${Math.random().toString(36).slice(2, 8)}`;
+  out.name = String(out.name ?? out.id);
+  out.patterns = String(out.patterns ?? out.name ?? "");
+
+  // regex: keep if valid, otherwise rebuild from patterns
+  const __esc = (s) => String(s).replace(/[.*+?^${}()|[\[\]\]]/g, "\$&");
+  const __buildRegexFromPatterns = (patterns) => {
+    const parts = String(patterns || "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map(__esc);
+    return parts.length ? `(?:${parts.join("|")})` : "";
+  };
+  if (!out.regex || typeof out.regex !== "string") out.regex = __buildRegexFromPatterns(out.patterns);
+
+  if (Array.isArray(out.categories)) out.categories = out.categories.join(", ");
+  out.categories = String(out.categories ?? "equipment, armor, weapon, shield, consumable, treasure, coins, container");
+
+  const n = Number(out.emptyChance);
+  out.emptyChance = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 25;
+
+  if (Array.isArray(out.countRange)) out.countRange = out.countRange.join(", ");
+  out.countRange = String(out.countRange ?? "1, 5");
+
+  if (!Array.isArray(out.filters)) out.filters = [];
+  return out;
+}
+
+function _normalizeList(list) {
+  const arr = Array.isArray(list) ? list : [];
+  return arr.map(_normalizeContainer);
+}
+
 function readList() {
-  try { return JSON.parse(game.settings.get(MODULE, KEY) || "[]") || []; }
-  catch { return []; }
+  // Primary: current registered setting
+  let raw = "";
+  try {
+    raw = String(game.settings.get(MODULE, KEY) || "");
+  } catch {
+    raw = "";
+  }
+  let list = _tryParseList(raw);
+
+  // Fallback: world backup (last-known-good)
+  if (!list.length) {
+    try {
+      list = _tryParseList(String(game.settings.get(MODULE, KEY_BACKUP) || ""));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // Fallback: client storage (if older versions used scope: "client")
+  if (!list.length) {
+    const clientRaw = _storageGet("client", KEY);
+    list = _tryParseList(clientRaw);
+  }
+
+  return _normalizeList(list);
 }
+
 async function writeList(list) {
-  await game.settings.set(MODULE, KEY, JSON.stringify(list ?? []));
+  const normalized = _normalizeList(list ?? []);
+
+  // Keep a backup before overwriting
+  try {
+    const prevRaw = String(game.settings.get(MODULE, KEY) || "");
+    if (prevRaw) await game.settings.set(MODULE, KEY_BACKUP, prevRaw);
+  } catch {
+    // ignore if backup setting isn't registered yet
+  }
+
+  await game.settings.set(MODULE, KEY, JSON.stringify(normalized));
 }
+
+// One-time migration helper: if world list is empty but client has data, copy it over.
+Hooks.once("ready", async () => {
+  try {
+    const world = readList();
+    if (world.length) return;
+
+    const clientRaw = _storageGet("client", KEY);
+    const client = _normalizeList(_tryParseList(clientRaw));
+    if (client.length) {
+      await writeList(client);
+      console.info(`${MODULE} | Migrated custom containers from client storage to world setting.`);
+    }
+  } catch (err) {
+    console.warn(`${MODULE} | Custom container migration skipped`, err);
+  }
+});
 
 /* ===========================
  * Utilidades
@@ -212,6 +326,35 @@ function catsToArray(s) {
   return String(s||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);
 }
 function newId() { return `c-${Math.random().toString(36).slice(2,6)}${Math.random().toString(36).slice(2,6)}`; }
+
+function normalizeContainer(raw) {
+  const c = raw && typeof raw === "object" ? { ...raw } : {};
+
+  c.id = String(c.id || "").trim() || newId();
+  c.name = String(c.name || c.id || "Container");
+
+  // Patterns + regex
+  c.patterns = String(c.patterns || c.name || "");
+  if (!c.regex) c.regex = buildRegexFromPatterns(c.patterns);
+
+  // Allowed categories string (comma-separated)
+  c.categories = String(c.categories || "equipment, armor, weapon, shield, consumable, treasure, coins, container");
+
+  // Empty chance
+  const ec = Number(c.emptyChance);
+  c.emptyChance = Number.isFinite(ec) ? Math.max(0, Math.min(100, ec)) : 25;
+
+  // Count range
+  c.countRange = String(c.countRange || "1, 5");
+
+  // Filters (Tagify JSON)
+  if (typeof c.filters === "string") {
+    try { c.filters = JSON.parse(c.filters); } catch { c.filters = []; }
+  }
+  if (!Array.isArray(c.filters)) c.filters = [];
+
+  return c;
+}
 
 function isModuleActive(id) {
   return !!game.modules?.get(id)?.active;
@@ -263,6 +406,9 @@ function getFilterCatalogForSystem() {
   return FILTER_CATALOG.filter(e => catalogEntryEnabled(e, ctx));
 }
 
+function getSystemId() {
+  return game.system?.id || "pf2e";
+}
 
 
 /* ===========================
@@ -270,6 +416,88 @@ function getFilterCatalogForSystem() {
  * =========================== */
 const API = {
   list() { return readList(); },
+
+  /** Export all custom containers as JSON. */
+  exportJson({ pretty = true } = {}) {
+    const payload = {
+      schema: 1,
+      system: getSystemId(),
+      containers: readList(),
+    };
+    return JSON.stringify(payload, null, pretty ? 2 : 0);
+  },
+
+  /**
+   * Import from a parsed payload object.
+   * @param {object} payload
+   * @param {{mode?: 'merge'|'replace'}} opts
+   */
+  async importFromPayload(payload, { mode = "merge" } = {}) {
+    try {
+      if (!payload || typeof payload !== "object") return { ok: false, reason: "no-payload" };
+
+      const containers = Array.isArray(payload.containers) ? payload.containers : null;
+      if (!containers) return { ok: false, reason: "no-containers" };
+
+      const normalized = containers.map(_normalizeContainer).filter(Boolean);
+      if (!normalized.length) return { ok: false, reason: "empty" };
+
+      const existing = readList().map(_normalizeContainer).filter(Boolean);
+      let next = [];
+
+      if (mode === "replace") {
+        next = normalized;
+      } else {
+        // merge (prefer existing when ids collide)
+        const byId = new Map(existing.map(c => [c.id, c]));
+        for (const inc of normalized) {
+          if (!byId.has(inc.id)) byId.set(inc.id, inc);
+        }
+        // preserve the user's current ordering first, then append new ones
+        next = existing.map(c => byId.get(c.id)).filter(Boolean);
+        for (const [id, c] of byId.entries()) {
+          if (!next.some(x => x.id === id)) next.push(c);
+        }
+      }
+
+      await writeList(next);
+      return { ok: true, count: next.length };
+    } catch (e) {
+      console.error(`${MODULE} importFromPayload error`, e);
+      return { ok: false, reason: "exception" };
+    }
+  },
+
+  /** Import containers from JSON. mode: "merge" (keep existing IDs) or "replace". */
+  async importJson(text, { mode = "merge" } = {}) {
+    let parsed;
+    try {
+      parsed = JSON.parse(String(text ?? ""));
+    } catch (err) {
+      throw new Error("Invalid JSON");
+    }
+
+    const incomingRaw = Array.isArray(parsed)
+      ? parsed
+      : (parsed && Array.isArray(parsed.containers) ? parsed.containers : []);
+
+    const current = readList();
+    if (mode === "replace") {
+      await writeList(incomingRaw);
+      return { mode, replaced: current.length, total: incomingRaw.length, added: incomingRaw.length };
+    }
+
+    const existing = new Set(current.map(c => c.id));
+    const additions = [];
+    for (const c of incomingRaw) {
+      const id = c?.id;
+      if (id && existing.has(String(id))) continue;
+      additions.push(c);
+    }
+
+    await writeList(current.concat(additions));
+    return { mode, kept: current.length, added: additions.length, total: current.length + additions.length };
+  },
 
   async set(list) { await writeList(list); },
 
@@ -290,7 +518,7 @@ const API = {
       filters: []
     };
 
-    all.push(entry);
+    all.unshift(entry);
     await writeList(all);
     return entry;
   },
