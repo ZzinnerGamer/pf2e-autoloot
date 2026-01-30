@@ -196,6 +196,7 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
     if (this.activeGroupKey === 'Custom') {
       await ensureTagifyLoaded();
       this._initTagifyFilters(content);
+      this._enhanceCustomContainersUI(content);
     }
     
     const form = content.querySelector('form.pf2e-autoloot-settings');
@@ -487,6 +488,322 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
       console.warn(e);
     }
   }
+
+  _enhanceCustomContainersUI(html) {
+    // Only relevant when the Custom group is active
+    if (this.activeGroupKey !== "Custom") return;
+
+    const root = html?.[0] ?? html;
+    if (!root) return;
+
+    const list = root.querySelector(".custom-containers");
+    if (!list) return;
+
+    // --- Toolbar injection (idempotent)
+    let toolbar = root.querySelector(".custom-containers-toolbar");
+    if (!toolbar) {
+      toolbar = document.createElement("div");
+      toolbar.className = "custom-containers-toolbar";
+      toolbar.style.display = "flex";
+      toolbar.style.gap = "0.5rem";
+      toolbar.style.alignItems = "center";
+      toolbar.style.margin = "0.5rem 0";
+
+      toolbar.innerHTML = `
+        <input type="text" class="custom-containers-search" placeholder="${game.i18n.localize("Search") || "Search"}..." style="flex:1" />
+        <button type="button" class="custom-containers-export"><i class="fas fa-file-export"></i> ${game.i18n.localize("Export") || "Export"}</button>
+        <button type="button" class="custom-containers-import"><i class="fas fa-file-import"></i> ${game.i18n.localize("Import") || "Import"}</button>
+      `;
+
+      list.parentElement?.insertBefore(toolbar, list);
+    }
+
+    const searchInput = toolbar.querySelector(".custom-containers-search");
+    if (searchInput) {
+      if (typeof this._customSearch === "string" && searchInput.value !== this._customSearch) {
+        searchInput.value = this._customSearch;
+      }
+      searchInput.oninput = (ev) => {
+        this._customSearch = String(ev?.target?.value ?? "");
+        this._filterCustomContainers(root, this._customSearch);
+      };
+      // Apply initial filter
+      this._filterCustomContainers(root, this._customSearch);
+    }
+
+    const expBtn = toolbar.querySelector(".custom-containers-export");
+    if (expBtn && !expBtn.dataset.bound) {
+      expBtn.dataset.bound = "1";
+      expBtn.addEventListener("click", () => this._exportCustomContainers());
+    }
+
+    const impBtn = toolbar.querySelector(".custom-containers-import");
+    if (impBtn && !impBtn.dataset.bound) {
+      impBtn.dataset.bound = "1";
+      impBtn.addEventListener("click", () => this._importCustomContainers());
+    }
+
+    // --- Drag handles (idempotent)
+    this._installDragReorder(root);
+  }
+
+  _filterCustomContainers(root, query) {
+    const q = String(query ?? "").trim().toLowerCase();
+    const fieldsets = [...root.querySelectorAll("fieldset.custom-container")];
+    for (const fs of fieldsets) {
+      // The Custom tab template may not provide a dedicated "custom-name" input.
+      // Prefer the name input following our existing naming convention: custom.<id>.name
+      const id = fs.dataset.customId || fs.getAttribute("data-custom-id") || "";
+      const nameEl =
+        (id ? fs.querySelector(`input[name="custom.${CSS.escape(id)}.name"]`) : null) ||
+        fs.querySelector("input[name$='.name']") ||
+        fs.querySelector("input[type='text']");
+
+      const name = String(nameEl?.value ?? fs.dataset.customName ?? "");
+      fs.style.display = !q || name.toLowerCase().includes(q) ? "" : "none";
+    }
+  }
+
+  _installDragReorder(root) {
+    const list = root.querySelector(".custom-containers");
+    if (!list) return;
+
+    // Add handle to every container if missing
+    for (const fs of list.querySelectorAll("fieldset.custom-container")) {
+      if (fs.querySelector(".custom-drag-handle")) continue;
+
+      const handle = document.createElement("a");
+      handle.className = "custom-drag-handle";
+      handle.title = game.i18n.localize("Reorder") || "Reorder";
+      handle.draggable = true;
+      handle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+      handle.style.cursor = "grab";
+      handle.style.marginRight = "0.5rem";
+      handle.style.display = "inline-flex";
+      handle.style.alignItems = "center";
+
+      // Try to place it near the container title row, else prepend
+      const header = fs.querySelector(".custom-header") || fs.querySelector("legend") || fs;
+      header.insertBefore(handle, header.firstChild);
+
+      handle.addEventListener("dragstart", (ev) => {
+        this._dragCustomId = fs.dataset.customId || fs.getAttribute("data-custom-id");
+        ev.dataTransfer?.setData("text/plain", this._dragCustomId || "");
+        ev.dataTransfer?.setDragImage?.(fs, 10, 10);
+        fs.classList.add("dragging");
+      });
+
+      handle.addEventListener("dragend", () => {
+        fs.classList.remove("dragging");
+        this._dragCustomId = null;
+      });
+    }
+
+    // Install drop listeners once
+    if (list.dataset.dndBound) return;
+    list.dataset.dndBound = "1";
+
+    list.addEventListener("dragover", (ev) => {
+      if (!this._dragCustomId) return;
+      ev.preventDefault();
+    });
+
+    list.addEventListener("drop", (ev) => {
+      if (!this._dragCustomId) return;
+      ev.preventDefault();
+
+      const dragged = list.querySelector(`fieldset.custom-container[data-custom-id="${this._dragCustomId}"]`);
+      const targetFs = ev.target?.closest?.("fieldset.custom-container");
+      if (!dragged || !targetFs || dragged === targetFs) return;
+
+      // If search is active, we still reorder but preserve hidden items positions.
+      const rect = targetFs.getBoundingClientRect();
+      const before = ev.clientY < rect.top + rect.height / 2;
+      if (before) {
+        list.insertBefore(dragged, targetFs);
+      } else {
+        list.insertBefore(dragged, targetFs.nextSibling);
+      }
+
+      // Persist order + any in-progress edits
+      this._saveCustomContainers().catch((err) => console.error("pf2e-autoloot | reorder save failed", err));
+    });
+  }
+
+  async _exportCustomContainers() {
+    const CC = window.pf2eAutolootCustom;
+    if (!CC) return;
+
+    await this._saveCustomContainers();
+    const json = CC.exportJson({ pretty: true });
+
+    try {
+      const saveFn = foundry?.utils?.saveDataToFile ?? globalThis.saveDataToFile;
+      if (saveFn) {
+        const filename = `pf2e-autoloot-custom-containers-${Date.now()}.json`;
+        saveFn(json, "application/json", filename);
+      }
+    } catch { /* ignore */ }
+
+    // Show copyable dialog
+    await this._showJsonDialog({
+      title: game.i18n.localize("Export") || "Export",
+      body: json,
+      ok: game.i18n.localize("Close") || "Close",
+    });
+  }
+
+  async _importCustomContainers() {
+  const t = (key, fallback) => (game.i18n?.localize?.(key) ?? fallback ?? key);
+
+  const DialogV2 = foundry?.applications?.api?.DialogV2;
+  if (!DialogV2) {
+    ui.notifications?.error("DialogV2 not available");
+    return;
+  }
+
+  const content = document.createElement("div");
+  content.innerHTML = `
+    <div class="form-group">
+      <label>${t("pf2e-autoloot.settings.custom.import.label", "Paste JSON or pick a file")}</label>
+      <textarea class="cc-import-text" rows="10" style="width:100%; font-family:monospace;"></textarea>
+      <div class="notes">${t("pf2e-autoloot.settings.custom.import.hint", "If both are provided, file wins.")}</div>
+    </div>
+    <div class="form-group">
+      <label>${t("pf2e-autoloot.settings.custom.import.file", "JSON File")}</label>
+      <input class="cc-import-file" type="file" accept=".json,application/json">
+    </div>
+    <hr>
+    <div class="form-group">
+      <label>${t("pf2e-autoloot.settings.custom.import.mode", "Import mode")}</label>
+      <label class="radio">
+        <input type="radio" name="ccImportMode" value="merge" checked>
+        ${t("pf2e-autoloot.settings.custom.import.merge", "Merge (keep existing on same id)")}
+      </label>
+      <label class="radio">
+        <input type="radio" name="ccImportMode" value="replace">
+        ${t("pf2e-autoloot.settings.custom.import.replace", "Replace all")}
+      </label>
+    </div>
+  `;
+
+  let captured = null;
+
+  const result = await DialogV2.wait({
+    window: { title: t("pf2e-autoloot.settings.custom.import.title", "Import Custom Containers") },
+    content,
+    buttons: [
+      {
+        action: "import",
+        icon: '<i class="fas fa-file-import"></i>',
+        label: t("Import", "Import"),
+        callback: (_event, _button, dialog) => {
+          const rootFromDialog = (() => {
+            const el = dialog?.element ?? dialog?.el ?? dialog?.app?.element;
+            if (!el) return null;
+            if (el instanceof HTMLElement) return el;
+            // jQuery-like
+            if (Array.isArray(el) && el[0] instanceof HTMLElement) return el[0];
+            if (el[0] instanceof HTMLElement) return el[0];
+            return null;
+          })();
+
+          // Fallback: take the last visible import textarea in the DOM
+          const root =
+            rootFromDialog ||
+            document.querySelectorAll("textarea.cc-import-text")?.[
+              document.querySelectorAll("textarea.cc-import-text").length - 1
+            ]?.closest("form") ||
+            document;
+
+          const mode = root.querySelector('input[name="ccImportMode"]:checked')?.value ?? "merge";
+          const text = (root.querySelector(".cc-import-text")?.value ?? "").trim();
+          const file = root.querySelector(".cc-import-file")?.files?.[0] ?? null;
+          captured = { mode, text, file };
+        },
+      },
+      {
+        action: "cancel",
+        label: t("Cancel", "Cancel"),
+      },
+    ],
+    default: "import",
+    rejectClose: false,
+  });
+
+  const action = result?.action ?? result;
+  if (action !== "import") return;
+
+  const mode = captured?.mode ?? "merge";
+  const pasted = captured?.text ?? "";
+  const file = captured?.file ?? null;
+
+  let jsonText = pasted;
+  if (file) jsonText = await file.text();
+  jsonText = (jsonText ?? "").trim();
+
+  if (!jsonText) {
+    ui.notifications?.warn(t("pf2e-autoloot.settings.custom.import.nojson", "No JSON provided."));
+    return;
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(jsonText);
+  } catch (err) {
+    ui.notifications?.error(t("pf2e-autoloot.settings.custom.import.badjson", "Invalid JSON."));
+    console.error(err);
+    return;
+  }
+
+  const list = Array.isArray(payload?.containers) ? payload.containers : (Array.isArray(payload) ? payload : null);
+  if (!list) {
+    ui.notifications?.error(t("pf2e-autoloot.settings.custom.import.badformat", "JSON format not recognized."));
+    return;
+  }
+
+  await window.pf2eAutolootCustom?.importFromPayload?.(payload, { mode });
+  await this.render(true);
+}
+
+  async _showJsonDialog({ title, body, ok = "Ok" } = {}) {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `
+      <textarea style="height: 16rem; width: 100%">${body?.replaceAll("</", "<\\/") ?? ""}</textarea>
+      <p style="opacity:.8">${game.i18n.localize("You can copy this JSON.") || "You can copy this JSON."}</p>
+    `;
+    await this._showDialogV2({ title, content: wrapper, ok, cancel: null });
+  }
+
+  async _showDialogV2({ title, content, ok = "Ok", cancel = "Cancel" } = {}) {
+    const DialogV2 = foundry?.applications?.api?.DialogV2;
+    if (DialogV2?.wait) {
+      const buttons = [{ action: "ok", label: ok, default: true }];
+      if (cancel) buttons.push({ action: "cancel", label: cancel });
+
+      const result = await DialogV2.wait({
+        window: { title },
+        content,
+        buttons,
+      });
+      return { confirmed: result === "ok" };
+    }
+
+    // Fallback: legacy Dialog
+    return new Promise((resolve) => {
+      new Dialog({
+        title,
+        content: content?.outerHTML ?? String(content ?? ""),
+        buttons: {
+          ok: { label: ok, callback: () => resolve({ confirmed: true }) },
+          ...(cancel ? { cancel: { label: cancel, callback: () => resolve({ confirmed: false }) } } : {}),
+        },
+        default: "ok",
+        close: () => resolve({ confirmed: false }),
+      }).render(true);
+    });
+  }
+
 }
 
 function __titleCase(s) {
