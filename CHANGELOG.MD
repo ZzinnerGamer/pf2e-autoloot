@@ -1,3 +1,7 @@
+# PF2e Autoloot [2.2.1]
+
+- Fix import menu width and dialog title
+
 # PF2e Autoloot [2.2.0]
 
 - Fixed automatic loot generation on sheet opening
