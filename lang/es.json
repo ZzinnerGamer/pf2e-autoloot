@@ -55,6 +55,7 @@
   "pf2e-autoloot.settings.custom.emptyChance.hint": "Probabilidad (0–100%) de que el contenedor aparezca vacío.",
   "pf2e-autoloot.settings.custom.countRange.name": "Rango de cantidad de artículos",
   "pf2e-autoloot.settings.custom.countRange.hint": "Mín., Máx. — ej. \"1, 5\".",
+  "pf2e-autoloot.settings.custom.import.title": "Menú de importación",
   "pf2e-autoloot.settings.custom.import.label": "Pegar JSON",
   "pf2e-autoloot.settings.custom.import.hint": "Puedes pegar cualquier contenido JSON aquí si prefieres hacerlo manualmente. Asegúrate de que coincida con la arquitectura exacta.\nFusionar: Combinará los contenedores personalizados actuales, si los hay, priorizando los existentes.\nReemplazar: ELIMINARÁ TODOS tus contenedores personalizados y los reemplazará con los nuevos.",
   "pf2e-autoloot.settings.custom.import.file": "Archivo JSON",
