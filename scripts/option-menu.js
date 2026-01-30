@@ -664,10 +664,10 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
 
   const content = document.createElement("div");
   content.innerHTML = `
-    <div class="form-group">
+    <div class="form-group" style="max-height: 350px; overflow-y: auto;">
       <label>${t("pf2e-autoloot.settings.custom.import.label", "Paste JSON or pick a file")}</label>
-      <textarea class="cc-import-text" rows="10" style="width:100%; font-family:monospace;"></textarea>
-      <div class="notes">${t("pf2e-autoloot.settings.custom.import.hint", "If both are provided, file wins.")}</div>
+      <textarea class="cc-import-text" rows="10" style="width:100%; font-family:monospace; "></textarea>
+      <div class="notes" style="max-width: 500px; overflow-y: auto;">${t("pf2e-autoloot.settings.custom.import.hint", "If both are provided, file wins.")}</div>
     </div>
     <div class="form-group">
       <label>${t("pf2e-autoloot.settings.custom.import.file", "JSON File")}</label>
@@ -691,6 +691,9 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
 
   const result = await DialogV2.wait({
     window: { title: t("pf2e-autoloot.settings.custom.import.title", "Import Custom Containers") },
+    with: 650,
+    height: 500,
+    resizable: true,
     content,
     buttons: [
       {
