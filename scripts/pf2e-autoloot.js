@@ -29,7 +29,7 @@ const DEFAULTS = {
     barrel: [1, 10],
     crate: [1, 15],
     chest: [2, 20],
-    pouch: [1,3]
+    pouch: [1, 3]
   },
   minimumChestLevelOffset: 4,
   maximumChestLevelOffset: 2,
@@ -41,35 +41,45 @@ const DEFAULTS = {
   preloadOnReady: true
 };
 
-const COIN_VALUE_GP = { pp:10, gp:1, sp:0.1, cp:0.01 };
+const COIN_VALUE_GP = { pp: 10, gp: 1, sp: 0.1, cp: 0.01 };
 
 const PF2E_TREASURE_BY_LEVEL = {
-  1:   175,    2:   300,   3:   500,  4:   850,  5:  1350,
-  6:  2000,    7:  2900,   8:  4000,  9:  5700, 10:  8000,
-  11: 11500,  12: 16500,  13: 25000, 14: 36500, 15: 54500,
-  16: 82500,  17: 128000, 18:208000, 19:355000, 20:490000
+  1: 175, 2: 300, 3: 500, 4: 850, 5: 1350,
+  6: 2000, 7: 2900, 8: 4000, 9: 5700, 10: 8000,
+  11: 11500, 12: 16500, 13: 25000, 14: 36500, 15: 54500,
+  16: 82500, 17: 128000, 18: 208000, 19: 355000, 20: 490000
 };
 
 const KCTG_FOLDER_FALLBACK = {
-  "0Tm0asm3LUrxa5kC": "Coinage",
-  "6hYZ9Hc8fRvK9JiV": "Letters, Books & Scrolls",
-  "IVpANVWTiiCiNg4A": "Fish",
-  "hwl8Wuch8vDxz6RO": "Food",
-  "ida5RTswFJc0uMjq": "Jewelry",
-  "rVALCRpo8OgzsUUL": "Potions",
-  "zVVu6z0PBTfQ1TEU": "Tavern Foods",
-  "ZRyw39SLwJLK4M8t": "Carpentry",
-  "4U8XLwprIq4Tmz5G": "Tools",
-  "9UICyFG0eQpZhDIQ": "Mixed Materials",
-  "BwqWamNoXDFiaSVe": "Weaving Tools",
-  "D5mNXc2nKfCqVF02": "Instruments",
-  "Kc0vPzHPlrswlYLN": "Logs & Lumber",
-  "RvJuKQkD9WaUoShf": "Bones",
-  "VZtRJkvlNtreHR7c": "Gemstones",
-  "YwOccB4gZhArWDvC": "Ore & Metal",
-  "hPTbArn4mQJ02Tcz": "Herbalist Tools",
-  "olTjz37Q2DwRxkfb": "Critters & Livestock",
-  "qH1EPlyqqYQaqNTO": "Theme - Red Harvest"
+  "JozhTcLtWhQSoixO": "Coinage & Currency",
+  "IZq1WnGQJLoIvXx8": "Jewelry",
+  "qaBYj6FjgwDkfFpB": "Vessels & Tableware",
+  "5odEKgzVaSQWECGi": "Ceremonial & Sacred",
+  "hsoTwRresy4mnjp7": "Funerary & Memorial",
+  "oXzcvIj45F4QHj75": "Animals & Livestock",
+  "CxeM1yrMXkrNcYtZ": "Documents & Scrolls",
+  "LcEbVaN90oHiv1Ya": "Fish & Game",
+  "mExUSCpoqePj3OdE": "Food & Produce",
+  "8lz2VxOmkdxoG8jI": "Potions & Tinctures",
+  "xNkX3Iw0Flrj0FRY": "Tavern & Prepared",
+  "RdzZ5C0EGK9UDTNv": "Bone & Hides",
+  "WYL6bFNvkQAqc7vh": "Fibres & Textiles",
+  "Rd2Ktl0K6V7JRLq7": "Gemstones",
+  "tW7OiZPldGc5FGzO": "Ore & Metals",
+  "7Fyf3kHvuwlcHXOm": "Stone & Masonry",
+  "4txKsKHAPGf9wAy5": "Timber & Lumber",
+  "ye3r3Ta3YG2Dbjt1": "Red Harvest",
+  "tgBukDzvYtH27xc6": "Carpentry",
+  "MTu86T3XOtrod5sb": "General Tools",
+  "1LGVb6QYZgelF64z": "Tools & Craft",
+  "Fnhotid9YhDXFevx": "Herbalist Supplies",
+  "4KCNdQYPwrafjCWn": "Instruments",
+  "7ib9lhOv3o7tL5Q5": "Raw Materials",
+  "np1lrgDmvT5Zcx0c": "Provisions",
+  "DNNb5KsoQ5uyIkz4": "Adornments & Luxury",
+  "BRJol1dheZH5MuAT": "General Trade",
+  "CkbhqUXNtPTwfDnl": "Seasonal & Themed",
+  "ZhvgovzjOp3DAVvp": "Antiquities & Relics"
 };
 
 const Cache = {
@@ -103,8 +113,8 @@ function pf2eCurrencyFromGP(gpAmount, { favorQuantity = true } = {}) {
 
   // Quantity-first: bias toward smaller coins; otherwise bias toward larger.
   const baseW = favorQuantity
-  ? { pp: 1, gp: 2, sp: 4, cp: 8 }
-  : { pp: 8, gp: 4, sp: 2, cp: 1 };
+    ? { pp: 1, gp: 2, sp: 4, cp: 8 }
+    : { pp: 8, gp: 4, sp: 2, cp: 1 };
 
   let guard = 5000;
   while (cp > 0 && guard-- > 0) {
@@ -220,9 +230,9 @@ async function addCurrencyToActor(actor, currencyObj) {
   try {
     // Prefer Coins.fromObject when available (PF2E/SF2E)
     const CoinsCls =
-    (inv?.coins?.constructor && typeof inv.coins.constructor.fromObject === "function" ? inv.coins.constructor : null) ||
-    (game?.pf2e?.Coins && typeof game.pf2e.Coins.fromObject === "function" ? game.pf2e.Coins : null) ||
-    (game?.sf2e?.Coins && typeof game.sf2e.Coins.fromObject === "function" ? game.sf2e.Coins : null);
+      (inv?.coins?.constructor && typeof inv.coins.constructor.fromObject === "function" ? inv.coins.constructor : null) ||
+      (game?.pf2e?.Coins && typeof game.pf2e.Coins.fromObject === "function" ? game.pf2e.Coins : null) ||
+      (game?.sf2e?.Coins && typeof game.sf2e.Coins.fromObject === "function" ? game.sf2e.Coins : null);
 
     const coinsToAdd = CoinsCls ? CoinsCls.fromObject(currencyObj) : currencyObj;
 
@@ -240,28 +250,28 @@ async function addCurrencyToActor(actor, currencyObj) {
 
     // Fallback: update directo.
     const path =
-    actor?.system?.currency ? "system.currency" :
-    actor?.system?.coins ? "system.coins" :
-    actor?.system?.resources?.currency ? "system.resources.currency" :
-    "system.currency";
+      actor?.system?.currency ? "system.currency" :
+        actor?.system?.coins ? "system.coins" :
+          actor?.system?.resources?.currency ? "system.resources.currency" :
+            "system.currency";
 
-  const existing = foundry.utils.getProperty(actor, path) || {};
-  const merged = mergeCurrency(existing, currencyObj);
+    const existing = foundry.utils.getProperty(actor, path) || {};
+    const merged = mergeCurrency(existing, currencyObj);
 
-  // Actualiza por claves para evitar choques con DataModel (algunas versiones usan {pp:{value}}).
-  const update = {};
-  for (const k of CURRENCY_KEYS) {
-    if (!(k in merged)) continue;
-    const n = readCurrencyNumber(merged[k]);
-    const ex = existing?.[k];
-    if (ex && typeof ex === "object" && "value" in ex) {
-      update[`${path}.${k}.value`] = n;
-    } else {
-      update[`${path}.${k}`] = n;
+    // Actualiza por claves para evitar choques con DataModel (algunas versiones usan {pp:{value}}).
+    const update = {};
+    for (const k of CURRENCY_KEYS) {
+      if (!(k in merged)) continue;
+      const n = readCurrencyNumber(merged[k]);
+      const ex = existing?.[k];
+      if (ex && typeof ex === "object" && "value" in ex) {
+        update[`${path}.${k}.value`] = n;
+      } else {
+        update[`${path}.${k}`] = n;
+      }
     }
-  }
-  if (Object.keys(update).length) await actor.update(update);
-  return true;
+    if (Object.keys(update).length) await actor.update(update);
+    return true;
   } catch (e) {
     console.warn(`${MODULE}: addCurrencyToActor failed`, e);
     return false;
@@ -276,8 +286,8 @@ async function clearAllCurrency(actor) {
     if (inv?.removeCoins && coins) {
       const ctor = coins?.constructor;
       const zeroLike = ctor?.fromObject
-      ? ctor.fromObject({ pp: 0, gp: 0, sp: 0, cp: 0, credits: 0, upb: 0 })
-      : { pp: 0, gp: 0, sp: 0, cp: 0, credits: 0, upb: 0 };
+        ? ctor.fromObject({ pp: 0, gp: 0, sp: 0, cp: 0, credits: 0, upb: 0 })
+        : { pp: 0, gp: 0, sp: 0, cp: 0, credits: 0, upb: 0 };
       await inv.removeCoins(zeroLike, { removeByValue: true });
       return true;
     }
@@ -317,33 +327,33 @@ async function clearAllCurrency(actor) {
 
 
 const PF2E_CURRENCY_PER_ADDITIONAL_PC = {
-  1: 10,   2: 18,   3: 30,   4: 50,   5: 80,
-  6: 125,  7: 180,  8: 250,  9: 350,  10: 500,
-  11: 700, 12: 1000,13: 1500,14: 2250,15: 3250,
-  16: 5000,17: 7500,18: 12000,19: 20000,20: 35000
+  1: 10, 2: 18, 3: 30, 4: 50, 5: 80,
+  6: 125, 7: 180, 8: 250, 9: 350, 10: 500,
+  11: 700, 12: 1000, 13: 1500, 14: 2250, 15: 3250,
+  16: 5000, 17: 7500, 18: 12000, 19: 20000, 20: 35000
 };
 
 const STASH_SPECS = {
-  1:  { perms: {2:2,1:2},       cons: {2:2,1:3},       currency: 40  },
-  2:  { perms: {3:2,2:2},       cons: {3:2,2:2,1:2},   currency: 70  },
-  3:  { perms: {4:2,3:2},       cons: {4:2,3:2,2:2},   currency: 120 },
-  4:  { perms: {5:2,4:2},       cons: {5:2,4:2,3:2},   currency: 200 },
-  5:  { perms: {6:2,5:2},       cons: {6:2,5:2,4:2},   currency: 320 },
-  6:  { perms: {7:2,6:2},       cons: {7:2,6:2,5:2},   currency: 500 },
-  7:  { perms: {8:2,7:2},       cons: {8:2,7:2,6:2},   currency: 720 },
-  8:  { perms: {9:2,8:2},       cons: {9:2,8:2,7:2},   currency: 1000},
-  9:  { perms: {10:2,9:2},      cons: {10:2,9:2,8:2},  currency: 1400},
-  10: { perms: {11:2,10:2},     cons: {11:2,10:2,9:2}, currency: 2000},
-  11: { perms: {12:2,11:2},     cons: {12:2,11:2,10:2},currency: 2800},
-  12: { perms: {13:2,12:2},     cons: {13:2,12:2,11:2},currency: 4000},
-  13: { perms: {14:2,13:2},     cons: {14:2,13:2,12:2},currency: 6000},
-  14: { perms: {15:2,14:2},     cons: {15:2,14:2,13:2},currency: 9000},
-  15: { perms: {16:2,15:2},     cons: {16:2,15:2,14:2},currency: 13000},
-  16: { perms: {17:2,16:2},     cons: {17:2,16:2,15:2},currency: 20000},
-  17: { perms: {18:2,17:2},     cons: {18:2,17:2,16:2},currency: 30000},
-  18: { perms: {19:2,18:2},     cons: {19:2,18:2,17:2},currency: 48000},
-  19: { perms: {20:2,19:2},     cons: {20:2,19:2,18:2},currency: 80000},
-  20: { perms: {20:4},          cons: {20:4,19:2},     currency: 140000}
+  1: { perms: { 2: 2, 1: 2 }, cons: { 2: 2, 1: 3 }, currency: 40 },
+  2: { perms: { 3: 2, 2: 2 }, cons: { 3: 2, 2: 2, 1: 2 }, currency: 70 },
+  3: { perms: { 4: 2, 3: 2 }, cons: { 4: 2, 3: 2, 2: 2 }, currency: 120 },
+  4: { perms: { 5: 2, 4: 2 }, cons: { 5: 2, 4: 2, 3: 2 }, currency: 200 },
+  5: { perms: { 6: 2, 5: 2 }, cons: { 6: 2, 5: 2, 4: 2 }, currency: 320 },
+  6: { perms: { 7: 2, 6: 2 }, cons: { 7: 2, 6: 2, 5: 2 }, currency: 500 },
+  7: { perms: { 8: 2, 7: 2 }, cons: { 8: 2, 7: 2, 6: 2 }, currency: 720 },
+  8: { perms: { 9: 2, 8: 2 }, cons: { 9: 2, 8: 2, 7: 2 }, currency: 1000 },
+  9: { perms: { 10: 2, 9: 2 }, cons: { 10: 2, 9: 2, 8: 2 }, currency: 1400 },
+  10: { perms: { 11: 2, 10: 2 }, cons: { 11: 2, 10: 2, 9: 2 }, currency: 2000 },
+  11: { perms: { 12: 2, 11: 2 }, cons: { 12: 2, 11: 2, 10: 2 }, currency: 2800 },
+  12: { perms: { 13: 2, 12: 2 }, cons: { 13: 2, 12: 2, 11: 2 }, currency: 4000 },
+  13: { perms: { 14: 2, 13: 2 }, cons: { 14: 2, 13: 2, 12: 2 }, currency: 6000 },
+  14: { perms: { 15: 2, 14: 2 }, cons: { 15: 2, 14: 2, 13: 2 }, currency: 9000 },
+  15: { perms: { 16: 2, 15: 2 }, cons: { 16: 2, 15: 2, 14: 2 }, currency: 13000 },
+  16: { perms: { 17: 2, 16: 2 }, cons: { 17: 2, 16: 2, 15: 2 }, currency: 20000 },
+  17: { perms: { 18: 2, 17: 2 }, cons: { 18: 2, 17: 2, 16: 2 }, currency: 30000 },
+  18: { perms: { 19: 2, 18: 2 }, cons: { 19: 2, 18: 2, 17: 2 }, currency: 48000 },
+  19: { perms: { 20: 2, 19: 2 }, cons: { 20: 2, 19: 2, 18: 2 }, currency: 80000 },
+  20: { perms: { 20: 4 }, cons: { 20: 4, 19: 2 }, currency: 140000 }
 };
 
 /* ---------------- Settings ---------------- */
@@ -352,7 +362,7 @@ Hooks.once("init", () => {
   IS_SF2E = game.system.id === "sf2e";
   IS_PF2E = game.system.id === "pf2e";
 
-  const L  = (k) => game.i18n.localize(k);
+  const L = (k) => game.i18n.localize(k);
 
 
   game.settings.registerMenu(MODULE, "autolootSettingsMenu", {
@@ -370,7 +380,7 @@ Hooks.once("init", () => {
     config: false,
     type: String,
     default: DEFAULTS.packs.equipment,
-      requiresReload: true
+    requiresReload: true
   });
 
   game.settings.register(MODULE, "pack-kctg", {
@@ -431,7 +441,7 @@ Hooks.once("init", () => {
   game.settings.register(MODULE, "crateLevelOffset", {
     name: L("pf2e-autoloot.settings.crateLevelOffset.name"),
     hint: L("pf2e-autoloot.settings.crateLevelOffset.hint"),
-    scope: "world", config: false, default: DEFAULTS.crateLevelOffset, type: Number, range:{min:-10,max:10,step:1}
+    scope: "world", config: false, default: DEFAULTS.crateLevelOffset, type: Number, range: { min: -10, max: 10, step: 1 }
   });
 
   game.settings.register(MODULE, `name-chest`, {
@@ -456,13 +466,13 @@ Hooks.once("init", () => {
   game.settings.register(MODULE, `minimumChestLevelOffset`, {
     name: L("pf2e-autoloot.settings.minimumChestLevelOffset.name"),
     hint: L("pf2e-autoloot.settings.minimumChestLevelOffset.hint"),
-    scope: "world", config: false, default: DEFAULTS.minimumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
+    scope: "world", config: false, default: DEFAULTS.minimumChestLevelOffset, type: Number, range: { min: 0, max: 10, step: 1 }
   });
 
   game.settings.register(MODULE, `maximumChestLevelOffset`, {
     name: L("pf2e-autoloot.settings.maximumChestLevelOffset.name"),
     hint: L("pf2e-autoloot.settings.maximumChestLevelOffset.hint"),
-    scope: "world", config: false, default: DEFAULTS.maximumChestLevelOffset, type: Number, range:{min:0,max:10,step:1}
+    scope: "world", config: false, default: DEFAULTS.maximumChestLevelOffset, type: Number, range: { min: 0, max: 10, step: 1 }
   });
 
   game.settings.register(MODULE, `name-pouch`, {
@@ -500,7 +510,7 @@ Hooks.once("init", () => {
   game.settings.register(MODULE, "stashLevelOffset", {
     name: L("pf2e-autoloot.settings.stashLevelOffset.name"),
     hint: L("pf2e-autoloot.settings.stashLevelOffset.hint"),
-    scope: "world", config: false, default: DEFAULTS.stashLevelOffset, type: Number, range:{min:-10,max:10,step:1}
+    scope: "world", config: false, default: DEFAULTS.stashLevelOffset, type: Number, range: { min: -10, max: 10, step: 1 }
   });
 
   game.settings.register(MODULE, "rarityWeightsJson", {
@@ -512,7 +522,7 @@ Hooks.once("init", () => {
 
   game.settings.register(MODULE, "maxStack", {
     name: L("pf2e-autoloot.settings.maxStack.name"),
-    scope: "world", config: false, type: Number, default: DEFAULTS.maxStack, range:{min:1,max:50,step:1}
+    scope: "world", config: false, type: Number, default: DEFAULTS.maxStack, range: { min: 1, max: 50, step: 1 }
   });
 
   game.settings.register(MODULE, "favorQuantity", {
@@ -523,7 +533,7 @@ Hooks.once("init", () => {
   game.settings.register(MODULE, "budgetFraction", {
     name: L("pf2e-autoloot.settings.budgetFraction.name"),
     hint: L("pf2e-autoloot.settings.budgetFraction.hint"),
-    scope: "world", config: false, type: Number, default: DEFAULTS.budgetFraction, range:{min:0.01,max:1,step:0.01}
+    scope: "world", config: false, type: Number, default: DEFAULTS.budgetFraction, range: { min: 0.01, max: 1, step: 0.01 }
   });
 
   game.settings.register(MODULE, "preloadOnReady", {
@@ -563,7 +573,7 @@ Hooks.once("init", () => {
 });
 
 /* -------------- Helpers -------------- */
-function dbg(...args) { if (game.settings.get(MODULE,"debug")) console.debug(MODULE, ...args); }
+function dbg(...args) { if (game.settings.get(MODULE, "debug")) console.debug(MODULE, ...args); }
 
 function weightedSample(list, count, weightFn) {
   if (!list.length || count <= 0) return [];
@@ -571,7 +581,7 @@ function weightedSample(list, count, weightFn) {
   const pool = list.slice();
   while (pool.length && out.length < count) {
     const weights = pool.map(weightFn);
-    const total = weights.reduce((a,b)=>a+b,0) || 1;
+    const total = weights.reduce((a, b) => a + b, 0) || 1;
     let r = Math.random() * total;
     let idx = 0;
     for (; idx < pool.length; idx++) {
@@ -579,7 +589,7 @@ function weightedSample(list, count, weightFn) {
       if (r <= 0) break;
     }
     out.push(pool[idx]);
-    pool.splice(idx,1);
+    pool.splice(idx, 1);
   }
   return out;
 }
@@ -681,7 +691,7 @@ async function generateStash(actor, partyLevel) {
 
 
 function rarityWeightFromSetting() {
-  let weights = {...DEFAULTS.rarityWeights};
+  let weights = { ...DEFAULTS.rarityWeights };
   try {
     const raw = game.settings.get(MODULE, "rarityWeightsJson");
     const parsed = JSON.parse(raw);
@@ -706,10 +716,10 @@ function priceToGP(item) {
   } else if (p.value && typeof p.value === "object") {
     const v = p.value;
     gp =
-    (Number(v.gp || 0)) +
-    (Number(v.pp || 0) * 10) +
-    (Number(v.sp || 0) / 10) +
-    (Number(v.cp || 0) / 100);
+      (Number(v.gp || 0)) +
+      (Number(v.pp || 0) * 10) +
+      (Number(v.sp || 0) / 10) +
+      (Number(v.cp || 0) / 100);
   } else if (typeof p.gp !== "undefined") {
     gp = Number(p.gp) || 0;
   }
@@ -732,10 +742,10 @@ function priceFromIndex(entry) {
   } else if (p.value && typeof p.value === "object") {
     const v = p.value;
     gp =
-    (Number(v.gp || 0)) +
-    (Number(v.pp || 0) * 10) +
-    (Number(v.sp || 0) / 10) +
-    (Number(v.cp || 0) / 100);
+      (Number(v.gp || 0)) +
+      (Number(v.pp || 0) * 10) +
+      (Number(v.sp || 0) / 10) +
+      (Number(v.cp || 0) / 100);
   }
 
   if (!Number.isFinite(gp) || gp <= 0) return 0;
@@ -752,23 +762,23 @@ function getAveragePartyLevel() {
 
   if (partyActor?.members?.length) {
     actors = partyActor.members
-    .map(m => m?.actor || m)
-    .filter(a => a && a.type === "character");
+      .map(m => m?.actor || m)
+      .filter(a => a && a.type === "character");
   }
   if (!actors.length && canvas.ready) {
     actors = canvas.tokens.placeables
-    .map(t => t.actor)
-    .filter(a => a?.type === "character" && a.hasPlayerOwner);
+      .map(t => t.actor)
+      .filter(a => a?.type === "character" && a.hasPlayerOwner);
   }
   if (!actors.length) {
     actors = game.actors.filter(a => a.type === "character" && a.hasPlayerOwner);
   }
 
   const levels = actors
-  .map(a => Number(a.system?.details?.level?.value ?? 1))
-  .filter(n => Number.isFinite(n) && n > 0);
+    .map(a => Number(a.system?.details?.level?.value ?? 1))
+    .filter(n => Number.isFinite(n) && n > 0);
 
-  const avg = levels.length ? Math.round(levels.reduce((s,n)=>s+n,0) / levels.length) : 1;
+  const avg = levels.length ? Math.round(levels.reduce((s, n) => s + n, 0) / levels.length) : 1;
   const clamped = Math.max(1, Math.min(20, avg));
   dbg("avgPartyLevel", { levels, avg, clamped, count: levels.length });
   return clamped;
@@ -779,13 +789,13 @@ function getPartySize() {
   const partyActor = game.actors?.party;
   if (partyActor?.members?.length) {
     actors = partyActor.members
-    .map(m => m?.actor || m)
-    .filter(a => a && a.type === "character");
+      .map(m => m?.actor || m)
+      .filter(a => a && a.type === "character");
   }
   if (!actors.length && canvas.ready) {
     actors = canvas.tokens.placeables
-    .map(t => t.actor)
-    .filter(a => a?.type === "character" && a.hasPlayerOwner);
+      .map(t => t.actor)
+      .filter(a => a?.type === "character" && a.hasPlayerOwner);
   }
   if (!actors.length) {
     actors = game.actors.filter(a => a.type === "character" && a.hasPlayerOwner);
@@ -798,8 +808,8 @@ async function mintCreditsFromBudget(budget, toCreate) {
   if (budget.gp <= 0) return;
 
   const credstickEntry = Cache.equipIndex.find(e =>
-  e.type === "treasure" &&
-  e.name.toLowerCase().includes("credstick")
+    e.type === "treasure" &&
+    e.name.toLowerCase().includes("credstick")
   );
 
   if (!credstickEntry) return;
@@ -817,9 +827,9 @@ async function mintCreditsFromBudget(budget, toCreate) {
 
 async function getAllEquipmentPacks() {
   const packIds = game.settings.get(MODULE, "pack-equipment")
-  .split(",")
-  .map(s => s.trim())
-  .filter(Boolean);
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
 
   const packs = await Promise.all(
     packIds.map(async id => {
@@ -863,7 +873,7 @@ function filterKCTGByFolders(index, folderMap, includeNames = null, excludeNames
 
 function uniqueRegistry() {
   try {
-    return JSON.parse(game.settings.get(MODULE,"uniqueRegistryJson")||"{}") || {};
+    return JSON.parse(game.settings.get(MODULE, "uniqueRegistryJson") || "{}") || {};
   } catch { return {}; }
 }
 
@@ -872,7 +882,7 @@ async function uniqueRegistrySet(obj) {
 }
 
 function uniqueKey(entry) {
-  return `${entry.__pack||"unknown"}:${entry._id}`;
+  return `${entry.__pack || "unknown"}:${entry._id}`;
 }
 
 function uniqueRegistryDelete(key) {
@@ -899,7 +909,7 @@ function CC() {
 }
 
 function isCustomType(typeStr) {
-  return /^custom:/.test(String(typeStr||""));
+  return /^custom:/.test(String(typeStr || ""));
 }
 
 function readList() {
@@ -915,8 +925,8 @@ async function writeList(list) {
 
 function buildRegexFromPatterns(patterns) {
   const parts = String(patterns || "")
-  .split(",").map(s => s.trim()).filter(Boolean)
-  .map(s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    .split(",").map(s => s.trim()).filter(Boolean)
+    .map(s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   return parts.length ? `(?:${parts.join("|")})` : "";
 }
 
@@ -928,19 +938,19 @@ function nextDefaultName(base, existing) {
 }
 
 function categoriesToString(cats) {
-  const arr = Array.isArray(cats) ? cats : String(cats || "").split(",").map(s=>s.trim());
+  const arr = Array.isArray(cats) ? cats : String(cats || "").split(",").map(s => s.trim());
   const uniq = [...new Set(arr.filter(Boolean))];
   return uniq.join(", ");
 }
 
 function stringToCategories(s) {
   return String(s || "")
-  .split(",").map(x => x.trim().toLowerCase())
-  .filter(Boolean);
+    .split(",").map(x => x.trim().toLowerCase())
+    .filter(Boolean);
 }
 
-function parseCountRange(s, fallback = [1,5]) {
-  const parts = String(s || "").split(",").map(n=>Number(n.trim())).filter(Number.isFinite);
+function parseCountRange(s, fallback = [1, 5]) {
+  const parts = String(s || "").split(",").map(n => Number(n.trim())).filter(Number.isFinite);
   if (parts.length === 2) return [Math.min(parts[0], parts[1]), Math.max(parts[0], parts[1])];
   return fallback;
 }
@@ -953,7 +963,7 @@ const API = {
     const base = game.i18n.localize("pf2e-autoloot.custom.containerNoun") || "Contenedor";
     const list = readList();
     const name = nextDefaultName(base, list);
-    const id = `c-${Date.now().toString(36)}-${Math.floor(Math.random()*1e6).toString(36)}`;
+    const id = `c-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;
     const entry = {
       id,
       name,
@@ -988,7 +998,7 @@ const API = {
     }
 
     if (typeof patch.countRange !== "undefined") {
-      const [mn,mx] = parseCountRange(patch.countRange);
+      const [mn, mx] = parseCountRange(patch.countRange);
       cur.countRange = `${mn}, ${mx}`;
     }
     list[idx] = cur;
@@ -1016,7 +1026,7 @@ const API = {
   getCountRangeFor(typeStr) {
     const def = this.parseType(typeStr);
     if (!def) return null;
-    return parseCountRange(def.countRange, [1,5]);
+    return parseCountRange(def.countRange, [1, 5]);
   },
 
   getAllowedCategoriesFor(typeStr) {
@@ -1113,15 +1123,15 @@ Hooks.once("ready", async () => {
 /* -------------- Pooling ---------------- */
 function getContainerTypeByName(name) {
   const isBarrel = nameMatches(name, "barrel");
-  const isCrate  = nameMatches(name, "crate");
-  const isChest  = nameMatches(name, "chest");
-  const isPouch  = nameMatches(name, "pouch");
-  const isStash  = nameMatches(name, "stash");
+  const isCrate = nameMatches(name, "crate");
+  const isChest = nameMatches(name, "chest");
+  const isPouch = nameMatches(name, "pouch");
+  const isStash = nameMatches(name, "stash");
   if (isBarrel) return "barrel";
-  if (isCrate)  return "crate";
-  if (isChest)  return "chest";
-  if (isPouch)  return "pouch";
-  if (isStash)  return "stash";
+  if (isCrate) return "crate";
+  if (isChest) return "chest";
+  if (isPouch) return "pouch";
+  if (isStash) return "stash";
 
   // Intento custom por nombre
   const def = CC()?.matchByName?.(name);
@@ -1137,45 +1147,45 @@ function isCustomContainerType(t) {
 // === Helpers de tokens ===
 function getTraitSet(entry) {
   const arr =
-  entry?.system?.traits?.value ??
-  entry?.["system.traits.value"] ??
-  [];
+    entry?.system?.traits?.value ??
+    entry?.["system.traits.value"] ??
+    [];
   return new Set(arr.map(s => String(s).toLowerCase()));
 }
 
 function alchBucketFor(entry) {
-  const sys  = entry.system ?? {};
+  const sys = entry.system ?? {};
   const name = String(entry.name || "");
   const traits = new Set(
     (Array.isArray(sys.traits?.value) ? sys.traits.value : [])
-    .map(s => String(s).toLowerCase())
+      .map(s => String(s).toLowerCase())
   );
 
   const rawOther = sys.traits?.otherTags;
   const otherTags = new Set(
     Array.isArray(rawOther)
-    ? rawOther.map(s => String(s).toLowerCase())
-    : (typeof rawOther === "string"
-    ? rawOther.split(",").map(s => s.trim().toLowerCase()).filter(Boolean)
-    : [])
+      ? rawOther.map(s => String(s).toLowerCase())
+      : (typeof rawOther === "string"
+        ? rawOther.split(",").map(s => s.trim().toLowerCase()).filter(Boolean)
+        : [])
   );
 
-  const cat  = (sys.category ?? entry["system.category"] ?? "").toLowerCase();
+  const cat = (sys.category ?? entry["system.category"] ?? "").toLowerCase();
   const type = entry.type;
-  const tok  = (id) => `equipment:${id}`;
+  const tok = (id) => `equipment:${id}`;
   const isAlchemical = traits.has("alchemical") || otherTags.has("alchemical");
 
-  if (otherTags.has("alchemical-food"))                   return tok("alchemical-food");
-  if (otherTags.has("herbal"))                            return tok("alchemical-plants");
-  if (otherTags.has("alchemical-tool"))                   return tok("alchemical-tools");
-  if (otherTags.has("bottled-monstrosities"))             return tok("bottled-monstrosities");
-  if (otherTags.has("drugs"))                             return tok("drugs");
+  if (otherTags.has("alchemical-food")) return tok("alchemical-food");
+  if (otherTags.has("herbal")) return tok("alchemical-plants");
+  if (otherTags.has("alchemical-tool")) return tok("alchemical-tools");
+  if (otherTags.has("bottled-monstrosities")) return tok("bottled-monstrosities");
+  if (otherTags.has("drugs")) return tok("drugs");
 
-  if (cat === "poison"                   || traits.has("poison")) return tok("alchemical-poisons");
-  if (cat === "drug")                                             return tok("drugs");
-  if (cat === "ammunition" || type === "ammo")                    return tok("alchemical-ammunition");
-  if (cat === "bomb"       || traits.has("bomb"))                 return tok("alchemical-bombs");
-  if (cat === "elixir"     || /(^|\W)elixir(\W|$)/i.test(name))   return tok("alchemical-elixirs");
+  if (cat === "poison" || traits.has("poison")) return tok("alchemical-poisons");
+  if (cat === "drug") return tok("drugs");
+  if (cat === "ammunition" || type === "ammo") return tok("alchemical-ammunition");
+  if (cat === "bomb" || traits.has("bomb")) return tok("alchemical-bombs");
+  if (cat === "elixir" || /(^|\W)elixir(\W|$)/i.test(name)) return tok("alchemical-elixirs");
 
   if (isAlchemical) return tok("alchemical-other");
   return null;
@@ -1194,13 +1204,13 @@ function buildTokenSet(e) {
   if (type) {
     tok.add(`type:${type}`);
     const big =
-    type === "backpack" ? "container" : type;
+      type === "backpack" ? "container" : type;
     tok.add(`group:${big}`);
   }
 
-  if (sys.group)     tok.add(`item.system.group:${sys.group}`);
-  if (sys.baseItem)  tok.add(`item.system.baseItem:${sys.baseItem}`);
-  if (sys.category)  tok.add(`item.system.category:${sys.category}`);
+  if (sys.group) tok.add(`item.system.group:${sys.group}`);
+  if (sys.baseItem) tok.add(`item.system.baseItem:${sys.baseItem}`);
+  if (sys.category) tok.add(`item.system.category:${sys.category}`);
 
   if (type === "armor") {
     const cat = sys.category ?? sys.armor?.category;
@@ -1218,19 +1228,19 @@ function buildTokenSet(e) {
   }
 
   const usageRaw =
-  sys?.usage?.type ??
-  e?.["system.usage.type"] ??
-  sys?.usage?.value ??
-  e?.["system.usage.value"] ??
-  "";
+    sys?.usage?.type ??
+    e?.["system.usage.type"] ??
+    sys?.usage?.value ??
+    e?.["system.usage.value"] ??
+    "";
   const usage = String(usageRaw).toLowerCase();
   if (usage === "worn") tok.add("equipment:worn-items");
 
   if (type === "equipment") {
     const traits = getTraitSet(e);
     const forbidden = new Set([
-      "arcane","occult","divine","primal",
-      "magical","invested","alchemical","precious"
+      "arcane", "occult", "divine", "primal",
+      "magical", "invested", "alchemical", "precious"
     ]);
     let isAdv = true;
     for (const f of forbidden) if (traits.has(f)) { isAdv = false; break; }
@@ -1254,9 +1264,9 @@ function filterPools(containerType, partyLevel) {
   // ----- CUSTOM -----
   if (isCustomType(containerType)) {
     const allowedCats = new Set(CC()?.getAllowedCategoriesFor?.(containerType) || []);
-    const filters     = new Set(CC()?.getFiltersFor?.(containerType) || []);
+    const filters = new Set(CC()?.getFiltersFor?.(containerType) || []);
 
-    const allowedTypes = new Set(["equipment","weapon","armor","shield","consumable","treasure","ammo","container"]);
+    const allowedTypes = new Set(["equipment", "weapon", "armor", "shield", "consumable", "treasure", "ammo", "container"]);
     const baseEquip = Cache.equipIndex.filter(e => allowedTypes.has(e.type));
 
     equip = baseEquip.filter(e => allowedCats.size ? allowedCats.has(e.type) : true);
@@ -1264,9 +1274,9 @@ function filterPools(containerType, partyLevel) {
     if (filters.size) {
       const filtersSet = new Set([...filters].map(f => String(f).trim()));
       const requestedConsumableCats = [...filters]
-      .map(f => f.match(/^item\.system\.category:(.+)$/i))
-      .filter(Boolean)
-      .map(m => m[1].toLowerCase());
+        .map(f => f.match(/^item\.system\.category:(.+)$/i))
+        .filter(Boolean)
+        .map(m => m[1].toLowerCase());
       const wantsConsumableCats = requestedConsumableCats.length > 0;
 
       const alchLeaves = [...filters].filter(f => /^equipment:alchemical-(?!items$)/.test(f));
@@ -1310,12 +1320,12 @@ function filterPools(containerType, partyLevel) {
 
         if (wantsOnlyWorn) {
           const usageRaw =
-          e?.system?.usage?.type ??
-          e?.["system.usage.type"] ??
-          e?.system?.usage?.value ??
-          e?.["system.usage.value"] ??
-          "";
-  return String(usageRaw).toLowerCase() === "worn";
+            e?.system?.usage?.type ??
+            e?.["system.usage.type"] ??
+            e?.system?.usage?.value ??
+            e?.["system.usage.value"] ??
+            "";
+          return String(usageRaw).toLowerCase() === "worn";
         }
 
         if (wantsOnlyMaterials) {
@@ -1379,7 +1389,7 @@ function filterPools(containerType, partyLevel) {
   // ----- NO CUSTOM  -----
   if (containerType === "barrel") {
     if (Cache.kctgIndex.length) {
-      const include = new Set(["Food","Tavern Foods","Fish"]);
+      const include = new Set(["Food & Produce", "Tavern & Prepared", "Fish & Game", "Provisions"]);
       kctg = filterKCTGByFolders(Cache.kctgIndex, Cache.kctgFolders, include, null);
     }
     equip = Cache.equipIndex.filter(e => e.type === "treasure");
@@ -1392,7 +1402,7 @@ function filterPools(containerType, partyLevel) {
       return e.type === "equipment" || e.type === "backpack";
     });
     if (Cache.kctgIndex.length) {
-      const exclude = new Set(["Food","Tavern Foods","Fish","Ore & Metal","Mixed Materials","Logs & Lumber","Gemstones","Critters & Livestock"]);
+      const exclude = new Set(["Food & Produce", "Tavern & Prepared", "Fish & Game", "Ore & Metals", "Raw Materials", "Timber & Lumber", "Gemstones", "Animals & Livestock"]);
       kctg = filterKCTGByFolders(Cache.kctgIndex, Cache.kctgFolders, null, exclude);
     }
 
@@ -1400,12 +1410,12 @@ function filterPools(containerType, partyLevel) {
     const minChestOffset = Number(game.settings.get(MODULE, "minimumChestLevelOffset") ?? DEFAULTS.minimumChestLevelOffset);
     const maxChestOffset = Number(game.settings.get(MODULE, "maximumChestLevelOffset") ?? DEFAULTS.maximumChestLevelOffset);
     const minL = Math.max(0, partyLevel - minChestOffset), maxL = partyLevel + maxChestOffset;
-    const allowed = new Set(["equipment","weapon","armor","shield","consumable","treasure","ammo","container"]);
+    const allowed = new Set(["equipment", "weapon", "armor", "shield", "consumable", "treasure", "ammo", "container"]);
     equip = Cache.equipIndex.filter(e =>
-    allowed.has(e.type) && Number(e.system?.level?.value ?? 0) >= minL && Number(e.system?.level?.value ?? 0) <= maxL
+      allowed.has(e.type) && Number(e.system?.level?.value ?? 0) >= minL && Number(e.system?.level?.value ?? 0) <= maxL
     );
     if (Cache.kctgIndex.length) {
-      const exclude = new Set(["Food","Tavern Foods","Fish","Bones","Instruments","Critters & Livestock"]);
+      const exclude = new Set(["Food & Produce", "Tavern & Prepared", "Fish & Game", "Bone & Hides", "Instruments", "Animals & Livestock"]);
       kctg = filterKCTGByFolders(Cache.kctgIndex, Cache.kctgFolders, null, exclude);
     }
 
@@ -1417,13 +1427,13 @@ function filterPools(containerType, partyLevel) {
 
   const reg = uniqueRegistry();
   equip = equip.filter(e => !isUnique(e) || !reg[uniqueKey(e)]);
-  kctg  = kctg.filter(e => !isUnique(e) || !reg[uniqueKey(e)]);
+  kctg = kctg.filter(e => !isUnique(e) || !reg[uniqueKey(e)]);
   return { equip, kctg };
 }
 
 async function getDocFrom(entry) {
   const packId = entry.__pack;
-  const docId  = entry._id;
+  const docId = entry._id;
   if (!packId || !docId) return null;
 
   const cacheKey = `${packId}:${docId}`;
@@ -1487,11 +1497,11 @@ function getQuotas(containerType, typeCount) {
   }
   switch (containerType) {
     case "barrel": return { treasure: typeCount, equipment: typeCount };
-    case "crate":  return {};
-    case "chest":  return { ...chestQuotas };
-    case "pouch":  return {};
-    case "stash":  return {};
-    default:       return {};
+    case "crate": return {};
+    case "chest": return { ...chestQuotas };
+    case "pouch": return {};
+    case "stash": return {};
+    default: return {};
   }
 }
 
@@ -1564,7 +1574,7 @@ async function generateFor(actor, containerType, opts = {}) {
       return;
     }
 
-    const {equip, kctg} = filterPools(containerType, partyLevel);
+    const { equip, kctg } = filterPools(containerType, partyLevel);
     let candidates = [...equip, ...kctg];
 
     let rangeMin = 1, rangeMax = 5;
@@ -1614,14 +1624,14 @@ async function generateFor(actor, containerType, opts = {}) {
 
     const minTypes = rangeMin;
     const maxTypes = rangeMax;
-    const typeCount = Math.max(minTypes, Math.min(maxTypes, minTypes + Math.floor(Math.random()*(maxTypes-minTypes+1))));
+    const typeCount = Math.max(minTypes, Math.min(maxTypes, minTypes + Math.floor(Math.random() * (maxTypes - minTypes + 1))));
 
     const weights = rarityWeightFromSetting();
     const weightedIds = [];
     for (const e of candidates) {
       const r = getRarity(e);
       const w = Number(weights[r]) || 1;
-      for (let i=0;i<Math.max(1,Math.round(w));i++) weightedIds.push(e._id);
+      for (let i = 0; i < Math.max(1, Math.round(w)); i++) weightedIds.push(e._id);
     }
 
     const toCreate = [];
@@ -1652,11 +1662,11 @@ async function generateFor(actor, containerType, opts = {}) {
       const favorQty = !!game.settings.get(MODULE, "favorQuantity");
 
       let pairs = candidates
-      .map(e => ({ e, p: priceFromIndex(e) }))
-      .filter(x => x.p >= 0.01);
+        .map(e => ({ e, p: priceFromIndex(e) }))
+        .filter(x => x.p >= 0.01);
 
       const EPS = 0.03;
-      pairs = pairs.map(x => ({ ...x, p: x.p * (1 + (Math.random()*2 - 1) * EPS) }));
+      pairs = pairs.map(x => ({ ...x, p: x.p * (1 + (Math.random() * 2 - 1) * EPS) }));
 
       const maxPerItem = Math.max(1, Number(game.settings.get(MODULE, "maxStack") ?? DEFAULTS.maxStack));
       const banned = new Set();
@@ -1723,7 +1733,7 @@ async function generateFor(actor, containerType, opts = {}) {
         let relaxSteps = 0;
         while (!pool.length && relaxSteps < 5) {
           cap = relaxSteps < 3 ? Math.min(budget.gp, Math.floor(cap * (relaxSteps === 0 ? 1.5 : relaxSteps === 1 ? 2 : 3)))
-          : (relaxSteps === 3 ? Math.floor(budget.gp * 0.60) : budget.gp);
+            : (relaxSteps === 3 ? Math.floor(budget.gp * 0.60) : budget.gp);
           pool = affordable.filter(x => x.p <= cap);
           relaxSteps += 1;
         }
@@ -1762,8 +1772,8 @@ async function generateFor(actor, containerType, opts = {}) {
           qty = Math.max(1, Math.min(
             maxPerItem,
             Math.floor(budget.gp / unit),
-                                     maxByBudget,
-                                     1 + Math.floor(Math.random() * maxPerItem)
+            maxByBudget,
+            1 + Math.floor(Math.random() * maxPerItem)
           ));
         }
 
@@ -1803,8 +1813,8 @@ async function generateFor(actor, containerType, opts = {}) {
     dbg("loot summary", {
       containerType,
       spent: (Number(initialBudgetGP) || 0) - (Number(budget.gp) || 0),
-        leftover: budget.gp,
-        items: toCreate.map(i => ({ name: i.name, qty: i.system?.quantity }))
+      leftover: budget.gp,
+      items: toCreate.map(i => ({ name: i.name, qty: i.system?.quantity }))
     });
 
     let created = [];
