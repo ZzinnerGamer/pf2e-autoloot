@@ -10,7 +10,11 @@
     "canUpload": true
   },
   "esmodules": [
-    "scripts/pf2e-autoloot.js", "scripts/option-menu.js", "scripts/custom-containter.js", "vendor/tagify/tagify.js"
+    "scripts/pf2e-autoloot.js",
+    "scripts/pf2e-curated-loot.js",
+    "scripts/option-menu.js",
+    "scripts/custom-containter.js",
+    "vendor/tagify/tagify.js"
   ],
   "languages": [
     {
@@ -50,7 +54,7 @@
           "minimum": "0.0.3"
         }
       }
-    ],    
+    ],
     "recommends": [
       {
         "id": "kctg-2e",
@@ -59,7 +63,7 @@
       }
     ]
   },
-  "description": "A lightweight Foundry VTT module for Pathfinder 2e that automatically populates loot containers as you open or reroll them. It uses smart budgets based on party level, rarity-weighted selection, and configurable rules per container type. (Heavely based on BG3 loot system).",
+  "description": "A lightweight Foundry VTT module for Pathfinder 2e that automatically populates loot containers as you open or reroll them.\nIt uses smart budgets based on party level, rarity-weighted selection, and configurable rules per container type. (Heavely based on BG3 loot system).",
   "url": "#{URL}#",
   "manifest": "#{MANIFEST}#",
   "download": "#{DOWNLOAD}#"
