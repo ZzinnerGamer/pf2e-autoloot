@@ -672,7 +672,14 @@ async function generateStash(actor, partyLevel) {
 
   // Monedas (nuevo sistema PF2E/SF2E: currency en el actor, no ítems de "treasure")
   let currencyAdded = false;
-  const specCurrency = Math.floor(Math.max(0, Number(spec.currency) || 0));
+
+  let stashFrac = game.settings.get(MODULE, "budgetFraction");
+  if (typeof stashFrac === "string") stashFrac = stashFrac.trim().replace(",", ".").replace("%", "");
+  stashFrac = Number(stashFrac);
+  if (!Number.isFinite(stashFrac) || stashFrac <= 0) stashFrac = DEFAULTS.budgetFraction;
+  if (stashFrac > 1) stashFrac = stashFrac > 100 ? 1 : stashFrac / 100;
+  const specCurrency = Math.floor(Math.max(0, Number(spec.currency) || 0) * stashFrac * (IS_SF2E ? 10 : 1));
+
   if (specCurrency > 0) {
     currencyAdded = await addCurrencyToActor(actor, currencyFromBudgetGP(specCurrency));
   }
@@ -1465,6 +1472,7 @@ function getBudgetFor(partyLevel) {
   }
 
   const gp = Math.max(0, Math.floor(base * frac));
+  if (IS_SF2E) return gp * 10;
   dbg("budgetFor", { txt: game.i18n.localize("pf2e-autoloot.dbg.budgetFor"), partyLevel, base, frac, gp });
   return gp;
 }
@@ -1798,7 +1806,14 @@ async function generateFor(actor, containerType, opts = {}) {
       const partySize = getPartySize();
       const perAddPC = PF2E_CURRENCY_PER_ADDITIONAL_PC[Math.max(1, Math.min(20, partyLevel))] || 0;
       const extraPCs = Math.max(0, partySize - 4);
-      const seedCoins = perAddPC * extraPCs;
+
+      let frac = game.settings.get(MODULE, "budgetFraction");
+      if (typeof frac === "string") frac = frac.trim().replace(",", ".").replace("%", "");
+      frac = Number(frac);
+      if (!Number.isFinite(frac) || frac <= 0) frac = DEFAULTS.budgetFraction;
+      if (frac > 1) frac = frac > 100 ? 1 : frac / 100;
+
+      const seedCoins = Math.floor(perAddPC * extraPCs * frac * (IS_SF2E ? 10 : 1));
 
       pendingCurrency = mergeCurrency(pendingCurrency, currencyFromBudgetGP(seedCoins));
       pendingCurrency = mergeCurrency(pendingCurrency, currencyFromBudgetGP(Math.floor(Math.max(0, budget.gp || 0))));
