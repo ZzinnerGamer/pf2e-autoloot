@@ -3,7 +3,7 @@
   "title": "PF2e Autoloot",
   "version": "#{VERSION}#",
   "compatibility": {
-    "minimum": "13",
+    "minimum": "14",
     "verified": "14"
   },
   "flags": {
@@ -40,14 +40,14 @@
         "id": "pf2e",
         "type": "system",
         "compatibility": {
-          "minimum": "7.9.1"
+          "minimum": "8.2.0"
         }
       },
       {
         "id": "sf2e",
         "type": "system",
         "compatibility": {
-          "minimum": "0.0.3"
+          "minimum": "1.2.0"
         }
       }
     ],    
