@@ -1,3 +1,10 @@
+# PF2e Autolood [2.3.0]
+
+- Fix budget exceding the party value if more than 4 player character were in the active party.
+- Fix starfinder budget value
+- Increase minimum compatibility with PF2e 8.2.0 and SF2e 1.2.0
+- Increase minimum compatibility from Foundry v13 to Foundry v14
+
 # PF2e Autoloot [2.2.1]
 
 - Fix import menu width and dialog title
