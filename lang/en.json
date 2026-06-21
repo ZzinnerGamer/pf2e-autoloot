@@ -43,7 +43,13 @@
   "pf2e-autoloot.settings.rarityWeightsJson.hint": "Structure: {\"common\":10,\"uncommon\":3,\"rare\":1,\"unique\":0.2}",
 
   "pf2e-autoloot.settings.maxStack.name": "Maximum quantity per item generated",
-  "pf2e-autoloot.settings.favorQuantity.name": "Prioritize quantity over price",
+
+  "pf2e-autoloot.settings.coinPreference.name": "Coin denomination preference",
+  "pf2e-autoloot.settings.coinPreference.hint": "Controls which coin denominations are generated more often. Chests and Custom Containers are affected by this setting.",
+  "pf2e-autoloot.settings.coinPreference.quantity": "Favor low-value coins (more coins/items on chests)",
+  "pf2e-autoloot.settings.coinPreference.balanced": "Balanced",
+  "pf2e-autoloot.settings.coinPreference.value": "Favor high-value coins (fewer coins/items on chests)",
+
   "pf2e-autoloot.settings.budgetFraction.name": "Budget fraction per container",
   "pf2e-autoloot.settings.budgetFraction.hint": "Fraction of PF2e ‘Total Value’ per party level (default 0.01 = 1%)",
 
