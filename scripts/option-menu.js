@@ -20,7 +20,7 @@ const SETTINGS_GROUPS = {
   General: [
     'autoloot',
     'budgetFraction',
-    'favorQuantity',
+    'coinPreference',
     'maxStack',
     'avoidNamesRegex'
   ],
@@ -64,7 +64,7 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
     super(options);
     try {
       this.options.window.title = "PF2E Autoloot";
-    } catch (_) {}
+    } catch (_) { }
     this.activeGroupKey = 'General';
     this._pendingChanges = {};
     currentAutolootConfigApp = this;
@@ -72,11 +72,11 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
 
   async _prepareContext() {
     const categories = [
-      { key: 'General',    title: game.i18n.localize("General")    || "General",    active: this.activeGroupKey === 'General' },
+      { key: 'General', title: game.i18n.localize("General") || "General", active: this.activeGroupKey === 'General' },
       { key: 'Containers', title: game.i18n.localize("Containers") || "Containers", active: this.activeGroupKey === 'Containers' },
-      { key: 'Custom',     title: game.i18n.localize("Custom")     || "Custom",     active: this.activeGroupKey === 'Custom' },
-      { key: 'Compendia',  title: game.i18n.localize("Compendia")  || "Compendia",  active: this.activeGroupKey === 'Compendia' },
-      { key: 'Advanced',   title: game.i18n.localize("Advanced")   || "Advanced",   active: this.activeGroupKey === 'Advanced' }
+      { key: 'Custom', title: game.i18n.localize("Custom") || "Custom", active: this.activeGroupKey === 'Custom' },
+      { key: 'Compendia', title: game.i18n.localize("Compendia") || "Compendia", active: this.activeGroupKey === 'Compendia' },
+      { key: 'Advanced', title: game.i18n.localize("Advanced") || "Advanced", active: this.activeGroupKey === 'Advanced' }
     ];
 
     const groups = [];
@@ -120,15 +120,15 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
         }));
       }
 
-      const min  = cfg.range?.min ?? null;
-      const max  = cfg.range?.max ?? null;
+      const min = cfg.range?.min ?? null;
+      const max = cfg.range?.max ?? null;
       const step = cfg.range?.step ?? (inputType === 'number' ? 1 : null);
 
       const name = typeof cfg.name === 'string' ? (game.i18n.localize(cfg.name) || cfg.name) : (cfg.name || key);
       const hint = typeof cfg.hint === 'string' ? (game.i18n.localize(cfg.hint) || cfg.hint) : (cfg.hint || '');
 
       const isEmptyChance = key.startsWith('empty-');
-      const isBudget      = key === 'budgetFraction';
+      const isBudget = key === 'budgetFraction';
       let ui = null;
       if ((isEmptyChance || isBudget) && inputType === 'number') ui = 'range';
 
@@ -140,11 +140,11 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
     const groups = [];
     const by = (keys, title) => groups.push({ title, items: this._buildSettingsItems(keys) });
 
-    by(['name-barrel','empty-barrel','count-barrel'], game.i18n.localize("pf2e-autoloot.container.barrel") || "Barrel");
-    by(['name-crate','empty-crate','count-crate','crateLevelOffset'], game.i18n.localize("pf2e-autoloot.container.crate") || "Crate");
-    by(['name-chest','empty-chest','count-chest','minimumChestLevelOffset','maximumChestLevelOffset'], game.i18n.localize("pf2e-autoloot.container.chest") || "Chest");
-    by(['name-pouch','empty-pouch','count-pouch'], game.i18n.localize("pf2e-autoloot.container.pouch") || "Pouch");
-    by(['name-stash','empty-stash','stashLevelOffset'], game.i18n.localize("pf2e-autoloot.container.stash") || "Stash");
+    by(['name-barrel', 'empty-barrel', 'count-barrel'], game.i18n.localize("pf2e-autoloot.container.barrel") || "Barrel");
+    by(['name-crate', 'empty-crate', 'count-crate', 'crateLevelOffset'], game.i18n.localize("pf2e-autoloot.container.crate") || "Crate");
+    by(['name-chest', 'empty-chest', 'count-chest', 'minimumChestLevelOffset', 'maximumChestLevelOffset'], game.i18n.localize("pf2e-autoloot.container.chest") || "Chest");
+    by(['name-pouch', 'empty-pouch', 'count-pouch'], game.i18n.localize("pf2e-autoloot.container.pouch") || "Pouch");
+    by(['name-stash', 'empty-stash', 'stashLevelOffset'], game.i18n.localize("pf2e-autoloot.container.stash") || "Stash");
 
     return groups;
   }
@@ -198,7 +198,7 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
       this._initTagifyFilters(content);
       this._enhanceCustomContainersUI(content);
     }
-    
+
     const form = content.querySelector('form.pf2e-autoloot-settings');
     if (form) {
       form.addEventListener('keydown', (ev) => {
@@ -234,7 +234,7 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
     inputs.forEach((el) => {
       if (el.__tagify) return;
 
-      
+
       function esc(s) {
         const str = String(s ?? "");
         if (foundry?.utils?.escapeHTML) return foundry.utils.escapeHTML(str);
@@ -246,16 +246,16 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
           .replace(/'/g, "&#039;");
       }
 
-    let initial = [];
+      let initial = [];
       try {
         const v = el.value?.trim();
-        const raw = v?.startsWith("[") && v?.endsWith("]") ? JSON.parse(v) : (v ? v.split(",").map(s=>s.trim()) : []);
+        const raw = v?.startsWith("[") && v?.endsWith("]") ? JSON.parse(v) : (v ? v.split(",").map(s => s.trim()) : []);
         const arr = Array.isArray(raw) ? raw : [];
         initial = arr
           .map(val => typeof val === "string" ? val : (val?.value ?? ""))
           .filter(Boolean)
           .map(v => ({ value: v, label: byValue[v]?.label || v }));
-      } catch (_) {}
+      } catch (_) { }
 
       const tagify = new window.Tagify(el, {
         enforceWhitelist: true,
@@ -272,7 +272,7 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
           mapValueTo: "label"
         },
         templates: {
-          tag(s){
+          tag(s) {
             const value = foundry?.utils?.escapeHTML ? foundry.utils.escapeHTML(s.value) : String(s.value);
             const label = foundry?.utils?.escapeHTML ? foundry.utils.escapeHTML(s.label || s.value) : String(s.label || s.value);
             return `
@@ -386,11 +386,11 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
       const id = fs.getAttribute('data-custom-id');
       const pick = (sel) => fs.querySelector(sel);
 
-      const name        = pick(`input[name="custom.${id}.name"]`)?.value ?? "";
-      const patterns    = pick(`input[name="custom.${id}.patterns"]`)?.value ?? "";
-      const categories  = pick(`input[name="custom.${id}.categories"]`)?.value ?? "";
+      const name = pick(`input[name="custom.${id}.name"]`)?.value ?? "";
+      const patterns = pick(`input[name="custom.${id}.patterns"]`)?.value ?? "";
+      const categories = pick(`input[name="custom.${id}.categories"]`)?.value ?? "";
       const emptyChance = Number(pick(`input[name="custom.${id}.emptyChance"]`)?.value ?? 25);
-      const countRange  = pick(`input[name="custom.${id}.countRange"]`)?.value ?? "1, 5";
+      const countRange = pick(`input[name="custom.${id}.countRange"]`)?.value ?? "1, 5";
 
       let filters = [];
       const input = pick(`input[name="custom.${id}.filters"]`);
@@ -420,7 +420,7 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
     const app = currentAutolootConfigApp;
     if (!app) return;
 
-    try { app._capturePendingChanges(); } catch (_) {}
+    try { app._capturePendingChanges(); } catch (_) { }
     app.activeGroupKey = key;
     app.render({ force: true });
   }
@@ -431,7 +431,7 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
       const formEl = app.element?.querySelector?.('form.pf2e-autoloot-settings');
       if (!formEl) return app.close();
 
-      try { app._capturePendingChanges(); } catch (_) {}
+      try { app._capturePendingChanges(); } catch (_) { }
       try { await app._saveCustomContainers(); } catch (e) {
         console.warn(`[${MODULE}] Error saving custom containers`, e);
       }
@@ -451,9 +451,9 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
         const saved = game.settings.get(MODULE, key);
         if (!cfg) continue;
 
-        if (cfg.type === Boolean)      value = (value === 'on' || value === 'true' || value === true);
-        else if (cfg.type === Number)  value = value != null && value !== '' ? Number(value) : saved;
-        else                           value = value ?? saved;
+        if (cfg.type === Boolean) value = (value === 'on' || value === 'true' || value === true);
+        else if (cfg.type === Number) value = value != null && value !== '' ? Number(value) : saved;
+        else value = value ?? saved;
 
         if (value !== saved) await game.settings.set(MODULE, key, value);
       }
@@ -466,7 +466,7 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
   }
 
   static async _onCloseApp(_event, _button) {
-    try { await (currentAutolootConfigApp || this).close(); } catch (_) {}
+    try { await (currentAutolootConfigApp || this).close(); } catch (_) { }
   }
 
   static async _onPreloadCache() {
@@ -654,16 +654,16 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
   }
 
   async _importCustomContainers() {
-  const t = (key, fallback) => (game.i18n?.localize?.(key) ?? fallback ?? key);
+    const t = (key, fallback) => (game.i18n?.localize?.(key) ?? fallback ?? key);
 
-  const DialogV2 = foundry?.applications?.api?.DialogV2;
-  if (!DialogV2) {
-    ui.notifications?.error("DialogV2 not available");
-    return;
-  }
+    const DialogV2 = foundry?.applications?.api?.DialogV2;
+    if (!DialogV2) {
+      ui.notifications?.error("DialogV2 not available");
+      return;
+    }
 
-  const content = document.createElement("div");
-  content.innerHTML = `
+    const content = document.createElement("div");
+    content.innerHTML = `
     <div class="form-group" style="max-height: 350px; overflow-y: auto;">
       <label>${t("pf2e-autoloot.settings.custom.import.label", "Paste JSON or pick a file")}</label>
       <textarea class="cc-import-text" rows="10" style="width:100%; font-family:monospace; "></textarea>
@@ -687,87 +687,87 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
     </div>
   `;
 
-  let captured = null;
+    let captured = null;
 
-  const result = await DialogV2.wait({
-    window: { title: t("pf2e-autoloot.settings.custom.import.title", "Import Custom Containers") },
-    with: 650,
-    height: 500,
-    resizable: true,
-    content,
-    buttons: [
-      {
-        action: "import",
-        icon: '<i class="fas fa-file-import"></i>',
-        label: t("Import", "Import"),
-        callback: (_event, _button, dialog) => {
-          const rootFromDialog = (() => {
-            const el = dialog?.element ?? dialog?.el ?? dialog?.app?.element;
-            if (!el) return null;
-            if (el instanceof HTMLElement) return el;
-            // jQuery-like
-            if (Array.isArray(el) && el[0] instanceof HTMLElement) return el[0];
-            if (el[0] instanceof HTMLElement) return el[0];
-            return null;
-          })();
+    const result = await DialogV2.wait({
+      window: { title: t("pf2e-autoloot.settings.custom.import.title", "Import Custom Containers") },
+      with: 650,
+      height: 500,
+      resizable: true,
+      content,
+      buttons: [
+        {
+          action: "import",
+          icon: '<i class="fas fa-file-import"></i>',
+          label: t("Import", "Import"),
+          callback: (_event, _button, dialog) => {
+            const rootFromDialog = (() => {
+              const el = dialog?.element ?? dialog?.el ?? dialog?.app?.element;
+              if (!el) return null;
+              if (el instanceof HTMLElement) return el;
+              // jQuery-like
+              if (Array.isArray(el) && el[0] instanceof HTMLElement) return el[0];
+              if (el[0] instanceof HTMLElement) return el[0];
+              return null;
+            })();
 
-          // Fallback: take the last visible import textarea in the DOM
-          const root =
-            rootFromDialog ||
-            document.querySelectorAll("textarea.cc-import-text")?.[
-              document.querySelectorAll("textarea.cc-import-text").length - 1
-            ]?.closest("form") ||
-            document;
+            // Fallback: take the last visible import textarea in the DOM
+            const root =
+              rootFromDialog ||
+              document.querySelectorAll("textarea.cc-import-text")?.[
+                document.querySelectorAll("textarea.cc-import-text").length - 1
+              ]?.closest("form") ||
+              document;
 
-          const mode = root.querySelector('input[name="ccImportMode"]:checked')?.value ?? "merge";
-          const text = (root.querySelector(".cc-import-text")?.value ?? "").trim();
-          const file = root.querySelector(".cc-import-file")?.files?.[0] ?? null;
-          captured = { mode, text, file };
+            const mode = root.querySelector('input[name="ccImportMode"]:checked')?.value ?? "merge";
+            const text = (root.querySelector(".cc-import-text")?.value ?? "").trim();
+            const file = root.querySelector(".cc-import-file")?.files?.[0] ?? null;
+            captured = { mode, text, file };
+          },
         },
-      },
-      {
-        action: "cancel",
-        label: t("Cancel", "Cancel"),
-      },
-    ],
-    default: "import",
-    rejectClose: false,
-  });
+        {
+          action: "cancel",
+          label: t("Cancel", "Cancel"),
+        },
+      ],
+      default: "import",
+      rejectClose: false,
+    });
 
-  const action = result?.action ?? result;
-  if (action !== "import") return;
+    const action = result?.action ?? result;
+    if (action !== "import") return;
 
-  const mode = captured?.mode ?? "merge";
-  const pasted = captured?.text ?? "";
-  const file = captured?.file ?? null;
+    const mode = captured?.mode ?? "merge";
+    const pasted = captured?.text ?? "";
+    const file = captured?.file ?? null;
 
-  let jsonText = pasted;
-  if (file) jsonText = await file.text();
-  jsonText = (jsonText ?? "").trim();
+    let jsonText = pasted;
+    if (file) jsonText = await file.text();
+    jsonText = (jsonText ?? "").trim();
 
-  if (!jsonText) {
-    ui.notifications?.warn(t("pf2e-autoloot.settings.custom.import.nojson", "No JSON provided."));
-    return;
+    if (!jsonText) {
+      ui.notifications?.warn(t("pf2e-autoloot.settings.custom.import.nojson", "No JSON provided."));
+      return;
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(jsonText);
+    } catch (err) {
+      ui.notifications?.error(t("pf2e-autoloot.settings.custom.import.badjson", "Invalid JSON."));
+      console.error(err);
+      return;
+    }
+
+    const list = Array.isArray(payload?.containers) ? payload.containers : (Array.isArray(payload) ? payload : null);
+    if (!list) {
+      ui.notifications?.error(t("pf2e-autoloot.settings.custom.import.badformat", "JSON format not recognized."));
+      return;
+    }
+
+    await window.pf2eAutolootCustom?.importFromPayload?.(payload, { mode });
+    await this.render(true);
   }
-
-  let payload;
-  try {
-    payload = JSON.parse(jsonText);
-  } catch (err) {
-    ui.notifications?.error(t("pf2e-autoloot.settings.custom.import.badjson", "Invalid JSON."));
-    console.error(err);
-    return;
-  }
-
-  const list = Array.isArray(payload?.containers) ? payload.containers : (Array.isArray(payload) ? payload : null);
-  if (!list) {
-    ui.notifications?.error(t("pf2e-autoloot.settings.custom.import.badformat", "JSON format not recognized."));
-    return;
-  }
-
-  await window.pf2eAutolootCustom?.importFromPayload?.(payload, { mode });
-  await this.render(true);
-}
 
   async _showJsonDialog({ title, body, ok = "Ok" } = {}) {
     const wrapper = document.createElement("div");
