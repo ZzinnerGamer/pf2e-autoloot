@@ -1,6 +1,7 @@
 # PF2e Autoloot [2.4.0]
 
 - New general setting: Coin denomination preference
+
 Controls which coin denominations are generated more often. Chests and Custom Containers are affected by this setting.
 `Favor High Value` will generate more likely PP and GP coins (Example 36 PP, 121 GP. 50 SP 400 CP)
 Balanced will generate the same-ish amount of coin value (Example 34 PP, 119 GP. 198 SP 1180 CP)
