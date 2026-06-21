@@ -97,54 +97,96 @@ const ManualRoll = new WeakSet();
 
 const CURRENCY_KEYS = ["pp", "gp", "sp", "cp", "credits", "upb"];
 
-function pf2eCurrencyFromGP(gpAmount, { favorQuantity = true } = {}) {
-  // Work in copper to avoid floating issues: 1 gp = 100 cp
-  let cp = Math.max(0, Math.floor((Number(gpAmount) || 0) * 100 + 1e-6));
+function pf2eCurrencyFromGP(gpAmount, _opts = {}) {
+  const denoms = { pp: 1000, gp: 100, sp: 10, cp: 1 };
+
+  const ORDER = {
+    value: ["pp", "gp", "sp", "cp"],
+    quantity: ["cp", "sp", "gp", "pp"],
+    balanced: ["pp", "gp", "sp", "cp"]
+  };
+
+  const ROUND_BITE = {
+    value: [0.40, 0.80],
+    quantity: [0.40, 0.80],
+    balanced: [0.35, 0.65]
+  };
+
+  const CASCADE_PCT = {
+    value: [0, 0.50],
+    quantity: [0, 0.50],
+    balanced: [0.30, 0.70]
+  };
+
+  const CASCADE_QTY_CAP = {
+    value: { sp: 30, cp: 80 },
+    balanced: { sp: 60, cp: 150 },
+    quantity: null
+  };
+
+  const STOP_THRESHOLD_CP = {
+    value: 150,
+    balanced: 150,
+    quantity: 50
+  };
+
+  const coinPref = game.settings.get(MODULE, "coinPreference");
+  const cpTotalOriginal = Math.max(0, Math.floor((Number(gpAmount) || 0) * 100 + 1e-6));
   const out = { pp: 0, gp: 0, sp: 0, cp: 0 };
-  if (!cp) return out;
+  if (!cpTotalOriginal) return out;
 
-  // Denoms in copper
-  const denoms = [
-    { k: "pp", v: 1000 },
-    { k: "gp", v: 100 },
-    { k: "sp", v: 10 },
-    { k: "cp", v: 1 }
-  ];
+  const order = ORDER[coinPref] || ORDER.balanced;
+  const [biteMin, biteMax] = ROUND_BITE[coinPref] || ROUND_BITE.balanced;
+  const [cascMin, cascMax] = CASCADE_PCT[coinPref] || CASCADE_PCT.balanced;
+  const qtyCap = CASCADE_QTY_CAP[coinPref] || null;
+  const stopThreshold = STOP_THRESHOLD_CP[coinPref] ?? 50;
 
-  // Quantity-first: bias toward smaller coins; otherwise bias toward larger.
-  const baseW = favorQuantity
-    ? { pp: 1, gp: 2, sp: 4, cp: 8 }
-    : { pp: 8, gp: 4, sp: 2, cp: 1 };
+  const randBetween = (min, max) => min + Math.random() * (max - min);
 
-  let guard = 5000;
-  while (cp > 0 && guard-- > 0) {
-    const viable = denoms.filter(d => d.v <= cp);
-    if (!viable.length) break;
+  let remaining = cpTotalOriginal;
+  let guard = 30;
 
-    const totalW = viable.reduce((s, d) => s + (baseW[d.k] || 1), 0) || 1;
-    let r = Math.random() * totalW;
-    let pick = viable[viable.length - 1];
-    for (const d of viable) {
-      r -= (baseW[d.k] || 1);
-      if (r <= 0) { pick = d; break; }
+  while (remaining > stopThreshold && guard-- > 0) {
+    const [anchorKey, ...rest] = order;
+    const anchorValue = denoms[anchorKey];
+    if (remaining < anchorValue) break;
+
+    const bitePct = randBetween(biteMin, biteMax);
+    let anchorCp = Math.min(Math.floor(remaining * bitePct), remaining);
+
+    let anchorQty = Math.floor(anchorCp / anchorValue);
+    if (anchorQty <= 0) {
+      if (remaining >= anchorValue) anchorQty = 1;
+      else break;
     }
+    const anchorSpent = anchorQty * anchorValue;
+    out[anchorKey] += anchorQty;
+    remaining -= anchorSpent;
 
-    const maxQty = Math.max(1, Math.floor(cp / pick.v));
+    let cascadeBudget = anchorSpent;
+    for (const k of rest) {
+      const pct = randBetween(cascMin, cascMax);
+      let cascadeCp = Math.min(Math.floor(cascadeBudget * pct), remaining);
 
-    // Keep it "chunky" but not always max: random 1..maxQty with mild bias upward.
-    let qty = 1;
-    if (maxQty === 1) {
-      qty = 1;
-    } else {
-      const u = Math.random();
-      const biased = Math.sqrt(u); // bias toward higher numbers without always maxing
-      qty = 1 + Math.floor(biased * maxQty);
-      qty = Math.min(maxQty, Math.max(1, qty));
+      let qty = Math.floor(cascadeCp / denoms[k]);
+      if (qtyCap && qtyCap[k] != null) qty = Math.min(qty, qtyCap[k]);
+      if (qty > 0) {
+        out[k] += qty;
+        remaining -= qty * denoms[k];
+      }
+      cascadeBudget = qty * denoms[k];
     }
-
-    out[pick.k] += qty;
-    cp -= pick.v * qty;
   }
+
+  const smallestKey = order[order.length - 1];
+  if (remaining > 0) {
+    const qty = Math.floor(remaining / denoms[smallestKey]);
+    if (qty > 0) {
+      out[smallestKey] += qty;
+      remaining -= qty * denoms[smallestKey];
+    }
+  }
+  if (remaining > 0) out.cp += remaining;
 
   return out;
 }
@@ -162,14 +204,13 @@ function randNearMax(min, max) {
   return Math.floor(min + (max - min) * t);
 }
 
-function sf2eCurrencyFromGP(gpAmount, _opts, { favorQuantity = true } = {}) {
-  // 1 gp budget == 10 credits
+function sf2eCurrencyFromGP(gpAmount, _opts = {}) {
   gpAmount = Math.floor(Math.max(0, Number(gpAmount) || 0));
   if (!gpAmount) return {};
-  const minFrac = favorQuantity ? 0.50 : 0.80;
+  const coinPref = game.settings.get(MODULE, "coinPreference");
+  const minFrac = coinPref === "value" ? 0.80 : coinPref === "quantity" ? 0.50 : 0.65;
   const min = Math.max(1, Math.floor(gpAmount * minFrac));
   const max = gpAmount;
-
   const credits = randNearMax(min, max);
   return { credits };
 }
@@ -394,6 +435,17 @@ Hooks.once("init", () => {
     scope: "world", config: false, default: false, type: Boolean
   });
 
+  game.settings.register(MODULE, "coinPreference", {
+    name: L("pf2e-autoloot.settings.coinPreference.name"),
+    hint: L("pf2e-autoloot.settings.coinPreference.hint"),
+    scope: "world", config: false, type: String, default: "balanced",
+    choices: {
+      quantity: L("pf2e-autoloot.settings.coinPreference.quantity"),
+      balanced: L("pf2e-autoloot.settings.coinPreference.balanced"),
+      value: L("pf2e-autoloot.settings.coinPreference.value")
+    }
+  });
+
   game.settings.register(MODULE, "avoidNamesRegex", {
     name: L("pf2e-autoloot.settings.avoidNamesRegex.name"),
     hint: L("pf2e-autoloot.settings.avoidNamesRegex.hint"),
@@ -523,11 +575,6 @@ Hooks.once("init", () => {
   game.settings.register(MODULE, "maxStack", {
     name: L("pf2e-autoloot.settings.maxStack.name"),
     scope: "world", config: false, type: Number, default: DEFAULTS.maxStack, range: { min: 1, max: 50, step: 1 }
-  });
-
-  game.settings.register(MODULE, "favorQuantity", {
-    name: L("pf2e-autoloot.settings.favorQuantity.name"),
-    scope: "world", config: false, type: Boolean, default: true
   });
 
   game.settings.register(MODULE, "budgetFraction", {
@@ -1562,9 +1609,8 @@ async function generateFor(actor, containerType, opts = {}) {
 
     // ---- POUCH: coins only ----
     if (containerType === "pouch") {
-      const favorQty = !!game.settings.get(MODULE, "favorQuantity");
       const coinBudgetGP = Math.max(0, Math.floor(budget.gp || 0));
-      const coinsObj = currencyFromBudgetGP(coinBudgetGP, { favorQuantity: favorQty });
+      const coinsObj = currencyFromBudgetGP(coinBudgetGP);
 
       await clearAllCurrency(actor);
       const ok = await addCurrencyToActor(actor, coinsObj);
@@ -1667,7 +1713,8 @@ async function generateFor(actor, containerType, opts = {}) {
       return;
     }
     else {
-      const favorQty = !!game.settings.get(MODULE, "favorQuantity");
+      const coinPref = game.settings.get(MODULE, "coinPreference");
+      const favorQty = coinPref === "quantity";
 
       let pairs = candidates
         .map(e => ({ e, p: priceFromIndex(e) }))
