@@ -1,3 +1,8 @@
+# PF2e Autoloot
+
+* update French translation by @rectulo in https://github.com/ZzinnerGamer/pf2e-autoloot/pull/17
+* Update Polish translate by @Lioheart in https://github.com/ZzinnerGamer/pf2e-autoloot/pull/18
+
 # PF2e Autoloot [2.4.0]
 
 - New general setting: Coin denomination preference
