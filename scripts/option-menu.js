@@ -19,6 +19,7 @@ async function ensureTagifyLoaded() {
 const SETTINGS_GROUPS = {
   General: [
     'autoloot',
+    'previewBeforeApply',
     'budgetFraction',
     'coinPreference',
     'maxStack',
@@ -132,7 +133,21 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
       let ui = null;
       if ((isEmptyChance || isBudget) && inputType === 'number') ui = 'range';
 
-      return { key, name, hint, value, inputType, min, max, step, ui, choices };
+      // The preview dialog only runs on manual rolls, so it is meaningless
+      // (and misleading) while fully automatic autoloot is enabled.
+      let disabled = false;
+      let disabledHint = '';
+      if (key === 'previewBeforeApply') {
+        const pending = this._pendingChanges?.['settings.autoloot'];
+        const autolootOn = (pending !== undefined) ? !!pending : !!game.settings.get(MODULE, 'autoloot');
+        if (autolootOn) {
+          disabled = true;
+          disabledHint = game.i18n.localize('pf2e-autoloot.settings.previewBeforeApply.disabledHint')
+            || 'Unavailable while automatic autoloot is enabled.';
+        }
+      }
+
+      return { key, name, hint, value, inputType, min, max, step, ui, choices, disabled, disabledHint };
     }).filter(Boolean);
   }
 
@@ -204,6 +219,20 @@ export class AutolootConfigApp extends foundry.applications.api.ApplicationV2 {
       form.addEventListener('keydown', (ev) => {
         if (ev.key === 'Enter' && ev.target?.closest('.tagify')) ev.preventDefault();
       }, true);
+
+      // Keep the preview toggle in sync with the autoloot toggle without a re-render.
+      const autolootBox = form.querySelector('input[name="settings.autoloot"]');
+      const previewBox = form.querySelector('input[name="settings.previewBeforeApply"]');
+      if (autolootBox && previewBox) {
+        const syncPreviewState = () => {
+          const off = !!autolootBox.checked;
+          previewBox.disabled = off;
+          const row = previewBox.closest('.pv-form-row');
+          if (row) row.style.opacity = off ? '.5' : '';
+        };
+        autolootBox.addEventListener('change', syncPreviewState);
+        syncPreviewState();
+      }
     }
 
     return content;
