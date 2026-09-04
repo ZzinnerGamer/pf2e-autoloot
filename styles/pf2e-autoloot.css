@@ -1,0 +1,120 @@
+/* ==========================================================================
+   PF2e Autoloot — loot preview dialog
+   Scoped under .pf2e-autoloot-preview so nothing leaks into Foundry's UI.
+   The dialog class is repeated in the selectors to win over system styles
+   that target generic ul / li / img inside application windows.
+   ========================================================================== */
+
+.pf2e-autoloot-preview h4 {
+  margin: 0.6rem 0 0.25rem;
+}
+
+/* ---- Budget table ---- */
+
+.pf2e-autoloot-preview table.pf2e-autoloot-stats {
+  width: 100%;
+  margin: 0 0 0.25rem;
+  border-collapse: collapse;
+  background: none;
+}
+
+.pf2e-autoloot-preview table.pf2e-autoloot-stats th,
+.pf2e-autoloot-preview table.pf2e-autoloot-stats td {
+  padding: 0.2rem 0.35rem;
+  text-align: left;
+  font-weight: normal;
+  border: none;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+}
+
+.pf2e-autoloot-preview table.pf2e-autoloot-stats td {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf2e-autoloot-preview table.pf2e-autoloot-stats tfoot th,
+.pf2e-autoloot-preview table.pf2e-autoloot-stats tfoot td {
+  font-weight: 700;
+  border-bottom: none;
+  border-top: 2px solid rgba(127, 127, 127, 0.5);
+}
+
+/* ---- Item / currency lists ---- */
+
+.pf2e-autoloot-preview ul.pf2e-autoloot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.pf2e-autoloot-preview ul.pf2e-autoloot-list > li.pf2e-autoloot-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.2rem 0.3rem;
+  list-style: none;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+}
+
+.pf2e-autoloot-preview ul.pf2e-autoloot-list > li.pf2e-autoloot-row:last-child {
+  border-bottom: none;
+}
+
+.pf2e-autoloot-preview ul.pf2e-autoloot-list > li > img.pf2e-autoloot-thumb {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  max-width: 24px;
+  max-height: 24px;
+  border: none;
+  border-radius: 2px;
+  object-fit: contain;
+  background: none;
+}
+
+.pf2e-autoloot-preview .pf2e-autoloot-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf2e-autoloot-preview .pf2e-autoloot-name a {
+  display: inline;
+}
+
+.pf2e-autoloot-preview .pf2e-autoloot-qty {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Padlocks ---- */
+
+.pf2e-autoloot-preview a.pf2e-autoloot-lock {
+  flex: 0 0 auto;
+  width: 1.2rem;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.pf2e-autoloot-preview li.pf2e-autoloot-row.is-locked a.pf2e-autoloot-lock,
+.pf2e-autoloot-preview a.pf2e-autoloot-lock:hover {
+  opacity: 1;
+}
+
+.pf2e-autoloot-preview .pf2e-autoloot-coins-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pf2e-autoloot-preview .pf2e-autoloot-coins-header > span {
+  flex: 1 1 auto;
+}
