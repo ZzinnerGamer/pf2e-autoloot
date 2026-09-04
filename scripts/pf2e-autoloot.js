@@ -97,93 +97,105 @@ const ManualRoll = new WeakSet();
 
 const CURRENCY_KEYS = ["pp", "gp", "sp", "cp", "credits", "upb"];
 
-function pf2eCurrencyFromGP(gpAmount, _opts = {}) {
-  const denoms = { pp: 1000, gp: 100, sp: 10, cp: 1 };
+/**
+ * Value shares per denomination for each coin preference.
+ * Each preset spends the SAME total value, only spread differently:
+ *   - value:    concentrates in platinum/gold and vetoes copper
+ *   - balanced: gold-led, with a visible tail of silver and copper
+ *   - quantity: pushes the bulk down into silver/copper, so you get many coins
+ * Shares are fractions of the coin budget and add up to 1.
+ */
+const COIN_VALUE_SHARES = {
+  value:    { pp: 0.72, gp: 0.26, sp: 0.02, cp: 0.00 },
+  balanced: { pp: 0.10, gp: 0.66, sp: 0.10, cp: 0.14 },
+  quantity: { pp: 0.00, gp: 0.26, sp: 0.33, cp: 0.41 }
+};
 
-  const ORDER = {
-    value: ["pp", "gp", "sp", "cp"],
-    quantity: ["cp", "sp", "gp", "pp"],
-    balanced: ["pp", "gp", "sp", "cp"]
-  };
+/**
+ * The container does not always hold its full coin budget.
+ * Rolls the amount actually present: at least half the budget up to level 10,
+ * at least three quarters from level 11 on, never more than the budget.
+ * Works at copper precision so small budgets still vary.
+ */
+function rollCoinAmount(budgetGP, partyLevel) {
+  const budgetCp = Math.max(0, Math.floor((Number(budgetGP) || 0) * 100 + 1e-6));
+  if (budgetCp <= 0) return 0;
 
-  const ROUND_BITE = {
-    value: [0.40, 0.80],
-    quantity: [0.40, 0.80],
-    balanced: [0.35, 0.65]
-  };
+  const lvl = Math.max(1, Math.min(20, Number(partyLevel) || 1));
+  const minFrac = lvl <= 10 ? 0.50 : 0.75;
+  const minCp = Math.max(1, Math.floor(budgetCp * minFrac));
+  if (minCp >= budgetCp) return budgetCp / 100;
 
-  const CASCADE_PCT = {
-    value: [0, 0.50],
-    quantity: [0, 0.50],
-    balanced: [0.30, 0.70]
-  };
+  return randInt(minCp, budgetCp) / 100;
+}
 
-  const CASCADE_QTY_CAP = {
-    value: { sp: 30, cp: 80 },
-    balanced: { sp: 60, cp: 150 },
-    quantity: null
-  };
+/**
+ * Splits an exact gp amount into coins according to the coin preference.
+ * The full amount is always preserved; only its distribution changes.
+ *
+ * Allocation uses probabilistic rounding: a denomination whose share works out
+ * to 0.66 coins has a 66% chance of yielding one. Plain truncation would drop
+ * that value down to the smaller denominations every single time, which made
+ * small budgets produce the same handful of copper on every roll.
+ */
+function pf2eCurrencyFromGP(gpAmount, opts = {}) {
+  const denoms = [
+    { k: "pp", v: 1000 },
+    { k: "gp", v: 100 },
+    { k: "sp", v: 10 },
+    { k: "cp", v: 1 }
+  ];
 
-  const STOP_THRESHOLD_CP = {
-    value: 150,
-    balanced: 150,
-    quantity: 50
-  };
-
-  const coinPref = game.settings.get(MODULE, "coinPreference");
-  const cpTotalOriginal = Math.max(0, Math.floor((Number(gpAmount) || 0) * 100 + 1e-6));
   const out = { pp: 0, gp: 0, sp: 0, cp: 0 };
-  if (!cpTotalOriginal) return out;
+  let remaining = Math.max(0, Math.floor((Number(gpAmount) || 0) * 100 + 1e-6));
+  if (!remaining) return out;
 
-  const order = ORDER[coinPref] || ORDER.balanced;
-  const [biteMin, biteMax] = ROUND_BITE[coinPref] || ROUND_BITE.balanced;
-  const [cascMin, cascMax] = CASCADE_PCT[coinPref] || CASCADE_PCT.balanced;
-  const qtyCap = CASCADE_QTY_CAP[coinPref] || null;
-  const stopThreshold = STOP_THRESHOLD_CP[coinPref] ?? 50;
+  const pref = opts.coinPreference || game.settings.get(MODULE, "coinPreference") || "balanced";
+  const shares = COIN_VALUE_SHARES[pref] || COIN_VALUE_SHARES.balanced;
 
-  const randBetween = (min, max) => min + Math.random() * (max - min);
+  // Jitter each share so two rolls of the same budget do not look identical.
+  const weighted = {};
+  let weightSum = 0;
+  for (const d of denoms) {
+    const base = Number(shares[d.k]) || 0;
+    const w = base > 0 ? base * (0.80 + Math.random() * 0.40) : 0;
+    weighted[d.k] = w;
+    weightSum += w;
+  }
+  if (weightSum <= 0) {
+    out.cp = remaining;
+    return out;
+  }
 
-  let remaining = cpTotalOriginal;
-  let guard = 30;
+  // Main pass: each denomination takes its share of the total value,
+  // rounding up or down at random in proportion to the leftover fraction.
+  const total = remaining;
+  for (const d of denoms) {
+    if (remaining <= 0) break;
+    const share = weighted[d.k] / weightSum;
+    if (share <= 0) continue;
 
-  while (remaining > stopThreshold && guard-- > 0) {
-    const [anchorKey, ...rest] = order;
-    const anchorValue = denoms[anchorKey];
-    if (remaining < anchorValue) break;
+    const targetCp = Math.min(total * share, remaining);
+    const exact = targetCp / d.v;
+    let qty = Math.floor(exact);
+    if (Math.random() < (exact - qty)) qty += 1;
 
-    const bitePct = randBetween(biteMin, biteMax);
-    let anchorCp = Math.min(Math.floor(remaining * bitePct), remaining);
-
-    let anchorQty = Math.floor(anchorCp / anchorValue);
-    if (anchorQty <= 0) {
-      if (remaining >= anchorValue) anchorQty = 1;
-      else break;
-    }
-    const anchorSpent = anchorQty * anchorValue;
-    out[anchorKey] += anchorQty;
-    remaining -= anchorSpent;
-
-    let cascadeBudget = anchorSpent;
-    for (const k of rest) {
-      const pct = randBetween(cascMin, cascMax);
-      let cascadeCp = Math.min(Math.floor(cascadeBudget * pct), remaining);
-
-      let qty = Math.floor(cascadeCp / denoms[k]);
-      if (qtyCap && qtyCap[k] != null) qty = Math.min(qty, qtyCap[k]);
-      if (qty > 0) {
-        out[k] += qty;
-        remaining -= qty * denoms[k];
-      }
-      cascadeBudget = qty * denoms[k];
+    qty = Math.min(qty, Math.floor(remaining / d.v));
+    if (qty > 0) {
+      out[d.k] += qty;
+      remaining -= qty * d.v;
     }
   }
 
-  const smallestKey = order[order.length - 1];
-  if (remaining > 0) {
-    const qty = Math.floor(remaining / denoms[smallestKey]);
+  // Cascade whatever is left, largest first. Vetoed denominations (share 0)
+  // stay out of this pass; copper is the unavoidable last resort.
+  for (const d of denoms) {
+    if (remaining <= 0) break;
+    if (!weighted[d.k] && d.k !== "cp") continue;
+    const qty = Math.floor(remaining / d.v);
     if (qty > 0) {
-      out[smallestKey] += qty;
-      remaining -= qty * denoms[smallestKey];
+      out[d.k] += qty;
+      remaining -= qty * d.v;
     }
   }
   if (remaining > 0) out.cp += remaining;
@@ -205,13 +217,11 @@ function randNearMax(min, max) {
 }
 
 function sf2eCurrencyFromGP(gpAmount, _opts = {}) {
-  gpAmount = Math.floor(Math.max(0, Number(gpAmount) || 0));
-  if (!gpAmount) return {};
-  const coinPref = game.settings.get(MODULE, "coinPreference");
-  const minFrac = coinPref === "value" ? 0.80 : coinPref === "quantity" ? 0.50 : 0.65;
-  const min = Math.max(1, Math.floor(gpAmount * minFrac));
-  const max = gpAmount;
-  const credits = randNearMax(min, max);
+  // SF2e uses a single merged currency, so there is nothing to distribute:
+  // the amount has already been rolled by rollCoinAmount and scaled to
+  // credits by getContainerBudget.
+  const credits = Math.floor(Math.max(0, Number(gpAmount) || 0));
+  if (!credits) return {};
   return { credits };
 }
 
@@ -435,6 +445,12 @@ Hooks.once("init", () => {
     scope: "world", config: false, default: false, type: Boolean
   });
 
+  game.settings.register(MODULE, "previewBeforeApply", {
+    name: L("pf2e-autoloot.settings.previewBeforeApply.name"),
+    hint: L("pf2e-autoloot.settings.previewBeforeApply.hint"),
+    scope: "world", config: false, default: false, type: Boolean
+  });
+
   game.settings.register(MODULE, "coinPreference", {
     name: L("pf2e-autoloot.settings.coinPreference.name"),
     hint: L("pf2e-autoloot.settings.coinPreference.hint"),
@@ -641,7 +657,7 @@ function weightedSample(list, count, weightFn) {
   return out;
 }
 
-async function generateStash(actor, partyLevel) {
+async function generateStash(actor, partyLevel, opts = {}) {
   const spec = STASH_SPECS[Math.max(1, Math.min(20, partyLevel))];
   if (!spec) return;
 
@@ -676,7 +692,10 @@ async function generateStash(actor, partyLevel) {
     }
   }
 
-  const toCreate = [];
+  // Padlocked items from a previous preview keep their place.
+  const lockedItems = Array.isArray(opts.lockedItems) ? opts.lockedItems : [];
+  const lockedKeys = new Set(lockedItems.map(r => r?.flags?.[MODULE]?.source?.id).filter(Boolean));
+  const toCreate = lockedItems.map(r => foundry.utils.deepClone(r));
 
   const weights = rarityWeightFromSetting();
   const itemWeight = (e) => {
@@ -688,7 +707,7 @@ async function generateStash(actor, partyLevel) {
   // Permanentes
   for (const [lvlStr, cnt] of Object.entries(spec.perms)) {
     const lvl = Number(lvlStr);
-    const pool = (byLevelPermanent.get(lvl) || []).filter((e) => !isUnique(e) || !reg[uniqueKey(e)]);
+    const pool = (byLevelPermanent.get(lvl) || []).filter((e) => (!isUnique(e) || !reg[uniqueKey(e)]) && !lockedKeys.has(e._id));
     const picked = weightedSample(pool, cnt, itemWeight);
     for (const entry of picked) {
       const doc = await getDocFrom(entry);
@@ -697,6 +716,7 @@ async function generateStash(actor, partyLevel) {
       delete raw._id;
       raw.system = raw.system || {};
       raw.system.quantity = 1;
+      stampSource(raw, entry);
       toCreate.push(raw);
     }
   }
@@ -704,7 +724,7 @@ async function generateStash(actor, partyLevel) {
   // Consumibles
   for (const [lvlStr, cnt] of Object.entries(spec.cons)) {
     const lvl = Number(lvlStr);
-    const pool = (byLevelConsumable.get(lvl) || []).filter((e) => !isUnique(e) || !reg[uniqueKey(e)]);
+    const pool = (byLevelConsumable.get(lvl) || []).filter((e) => (!isUnique(e) || !reg[uniqueKey(e)]) && !lockedKeys.has(e._id));
     const picked = weightedSample(pool, cnt, itemWeight);
     for (const entry of picked) {
       const doc = await getDocFrom(entry);
@@ -713,6 +733,7 @@ async function generateStash(actor, partyLevel) {
       delete raw._id;
       raw.system = raw.system || {};
       raw.system.quantity = 1;
+      stampSource(raw, entry);
       toCreate.push(raw);
     }
   }
@@ -720,15 +741,36 @@ async function generateStash(actor, partyLevel) {
   // Monedas (nuevo sistema PF2E/SF2E: currency en el actor, no ítems de "treasure")
   let currencyAdded = false;
 
-  let stashFrac = game.settings.get(MODULE, "budgetFraction");
-  if (typeof stashFrac === "string") stashFrac = stashFrac.trim().replace(",", ".").replace("%", "");
-  stashFrac = Number(stashFrac);
-  if (!Number.isFinite(stashFrac) || stashFrac <= 0) stashFrac = DEFAULTS.budgetFraction;
-  if (stashFrac > 1) stashFrac = stashFrac > 100 ? 1 : stashFrac / 100;
-  const specCurrency = Math.floor(Math.max(0, Number(spec.currency) || 0) * stashFrac * (IS_SF2E ? 10 : 1));
+  const stashCoinBudget = getContainerBudget("stash", partyLevel) + additionalPCBudget(partyLevel, false);
+  const specCurrency = rollCoinAmount(stashCoinBudget, partyLevel);
 
-  if (specCurrency > 0) {
-    currencyAdded = await addCurrencyToActor(actor, currencyFromBudgetGP(specCurrency));
+  const stashCurrency = (opts.lockedCurrency && hasAnyCurrencyObj(opts.lockedCurrency))
+    ? foundry.utils.deepClone(opts.lockedCurrency)
+    : (specCurrency > 0 ? currencyFromBudgetGP(specCurrency) : {});
+
+  if (shouldPreview(opts)) {
+    const lockedValue = itemsValueGP(opts.lockedItems || [])
+      + ((opts.lockedCurrency && hasAnyCurrencyObj(opts.lockedCurrency)) ? currencyValueGP(opts.lockedCurrency) : 0);
+
+    const res = await showLootPreview(actor, "stash", toCreate, stashCurrency, {
+      items: opts.lockedItems || [],
+      currency: opts.lockedCurrency || null
+    }, {
+      maxBudget: getContainerBudgetMax("stash", partyLevel),
+      budget: stashCoinBudget + itemsValueGP(toCreate),
+      lockedValue,
+      itemsValue: itemsValueGP(toCreate),
+      currencyValue: currencyValueGP(stashCurrency)
+    });
+    if (res.action === "cancel") return { cancelled: true };
+    if (res.action === "reroll") {
+      return { reroll: true, lockedItems: res.lockedItems, lockedCurrency: res.lockedCurrency };
+    }
+    if (typeof opts.onBeforeApply === "function") await opts.onBeforeApply();
+  }
+
+  if (hasAnyCurrencyObj(stashCurrency)) {
+    currencyAdded = await addCurrencyToActor(actor, stashCurrency);
   }
 
   let created = [];
@@ -945,6 +987,49 @@ function uniqueRegistryDelete(key) {
     delete reg[key];
     game.settings.set(MODULE, "uniqueRegistryJson", JSON.stringify(reg));
   }
+}
+
+/**
+ * Stamps the compendium origin on a generated item.
+ * Lets the preview open the real item sheet and keeps the unique registry
+ * able to release entries when loot is rerolled.
+ */
+function stampSource(raw, entry) {
+  if (!raw || !entry) return raw;
+  raw.flags = raw.flags || {};
+  raw.flags[MODULE] = raw.flags[MODULE] || {};
+  raw.flags[MODULE].source = {
+    pack: entry.__pack || null,
+    id: entry._id || null,
+    unique: !!isUnique(entry)
+  };
+  return raw;
+}
+
+function sourceUuid(raw) {
+  const src = raw?.flags?.[MODULE]?.source;
+  if (!src?.pack || !src?.id) return null;
+  return `Compendium.${src.pack}.Item.${src.id}`;
+}
+
+/** Total gp value of a currency object (credits for SF2e). */
+function currencyValueGP(cur) {
+  if (!cur) return 0;
+  if (IS_SF2E) return (Number(cur.credits) || 0) / 10;
+  return (Number(cur.pp) || 0) * 10
+    + (Number(cur.gp) || 0)
+    + (Number(cur.sp) || 0) / 10
+    + (Number(cur.cp) || 0) / 100;
+}
+
+/** Total gp value of a list of raw item data. */
+function itemsValueGP(list) {
+  let total = 0;
+  for (const raw of (list || [])) {
+    const q = Math.max(1, Number(raw?.system?.quantity) || 1);
+    total += (Number(priceToGP(raw)) || 0) * q;
+  }
+  return total;
 }
 
 function uniqueKeyFromItem(item) {
@@ -1504,32 +1589,77 @@ async function getDocFrom(entry) {
   return doc;
 }
 
-function getBudgetFor(partyLevel) {
-  const base = PF2E_TREASURE_BY_LEVEL[partyLevel] ?? PF2E_TREASURE_BY_LEVEL[1];
-  let frac = game.settings.get(MODULE, "budgetFraction");
-
-  if (typeof frac === "string") {
-    frac = frac.trim().replace(",", ".").replace("%", "");
+/**
+ * Source column each container type draws its budget from (Table 10-9).
+ *   pouch, crate, barrel -> Currency per Additional PC
+ *   chest                -> Party Currency
+ *   stash                -> Total Value (it also uses the permanent/consumable
+ *                           item-level filters from STASH_SPECS)
+ * Custom containers keep using Total Value.
+ */
+function containerBaseValue(containerType, partyLevel) {
+  const lvl = Math.max(1, Math.min(20, Number(partyLevel) || 1));
+  switch (containerType) {
+    case "pouch":
+    case "crate":
+    case "barrel":
+      return PF2E_CURRENCY_PER_ADDITIONAL_PC[lvl] ?? 0;
+    case "chest":
+      return STASH_SPECS[lvl]?.currency ?? 0;
+    case "stash":
+    default:
+      return PF2E_TREASURE_BY_LEVEL[lvl] ?? PF2E_TREASURE_BY_LEVEL[1];
   }
-  frac = Number(frac);
-  if (!Number.isFinite(frac) || frac <= 0) frac = DEFAULTS.budgetFraction;
-
-  if (frac > 1) {
-    frac = frac > 100 ? 1 : frac / 100;
-  }
-
-  const gp = Math.max(0, Math.floor(base * frac));
-  if (IS_SF2E) return gp * 10;
-  dbg("budgetFor", { txt: game.i18n.localize("pf2e-autoloot.dbg.budgetFor"), partyLevel, base, frac, gp });
-  return gp;
 }
 
+/** The stash is a fixed set piece, so the budget fraction never scales it. */
+function ignoresBudgetFraction(containerType) {
+  return containerType === "stash";
+}
+
+/** Budget fraction setting, normalised to a 0-1 multiplier. */
+function getBudgetFraction() {
+  let frac = game.settings.get(MODULE, "budgetFraction");
+  if (typeof frac === "string") frac = frac.trim().replace(",", ".").replace("%", "");
+  frac = Number(frac);
+  if (!Number.isFinite(frac) || frac <= 0) frac = DEFAULTS.budgetFraction;
+  if (frac > 1) frac = frac > 100 ? 1 : frac / 100;
+  return frac;
+}
+
+/** Extra coin allowance for parties larger than four. */
+function additionalPCBudget(partyLevel, applyFraction = true) {
+  const lvl = Math.max(1, Math.min(20, Number(partyLevel) || 1));
+  const extraPCs = Math.max(0, getPartySize() - 4);
+  if (!extraPCs) return 0;
+  const per = PF2E_CURRENCY_PER_ADDITIONAL_PC[lvl] ?? 0;
+  const frac = applyFraction ? getBudgetFraction() : 1;
+  return round2(per * extraPCs * frac * (IS_SF2E ? 10 : 1));
+}
+
+/** Rounds to copper precision so budgets never drift on floating point. */
+function round2(n) {
+  return Math.round((Number(n) || 0) * 100) / 100;
+}
+
+/**
+ * Full table value for this container type at this level, before the
+ * budget fraction is applied. Shown in the preview as the reference ceiling.
+ */
+function getContainerBudgetMax(containerType, partyLevel) {
+  const base = containerBaseValue(containerType, partyLevel);
+  return round2(base * (IS_SF2E ? 10 : 1));
+}
+
+/**
+ * Budget this container actually gets: its table value scaled by the
+ * configured budget fraction. Kept at copper precision, so a level 1 pouch
+ * at the default 1% is 1.75 gp rather than a rounded 1 gp.
+ */
 function getContainerBudget(containerType, partyLevel) {
-  const base = getBudgetFor(partyLevel);
-  if (containerType === "pouch") {
-    return Math.max(1, Math.ceil(base * 0.10));
-  }
-  return base;
+  const base = containerBaseValue(containerType, partyLevel);
+  const frac = ignoresBudgetFraction(containerType) ? 1 : getBudgetFraction();
+  return round2(base * frac * (IS_SF2E ? 10 : 1));
 }
 
 function getCountRange(containerType) {
@@ -1560,6 +1690,202 @@ function getQuotas(containerType, typeCount) {
   }
 }
 
+/* -------------- Loot preview -------------- */
+
+function shouldPreview(opts = {}) {
+  if (!opts.preview) return false;
+  return !!game.settings.get(MODULE, "previewBeforeApply");
+}
+
+/** Icon shipped by the system for each currency denomination. */
+function currencyIcon(key) {
+  const sys = IS_SF2E ? "sf2e" : "pf2e";
+  const file = {
+    pp: "platinum-pieces",
+    gp: "gold-pieces",
+    sp: "silver-pieces",
+    cp: "copper-pieces",
+    upb: "upb",
+    credits: "gold-pieces"
+  }[key] || "gold-pieces";
+  return `systems/${sys}/icons/equipment/treasure/currency/${file}.webp`;
+}
+
+function _previewCoinRows(currency) {
+  const order = IS_SF2E ? ["credits", "upb"] : ["pp", "gp", "sp", "cp"];
+  const rows = [];
+  for (const k of order) {
+    const v = Number(currency?.[k]) || 0;
+    if (v > 0) rows.push({ key: k, value: v });
+  }
+  return rows;
+}
+
+/**
+ * Shows the generated loot and lets the GM apply it, reroll it or cancel.
+ * Items can be padlocked: locked entries survive a reroll untouched and their
+ * value is deducted from the budget of the next roll.
+ *
+ * Returns { action: "accept" | "reroll" | "cancel", lockedItems, lockedCurrency }.
+ * Nothing is written to the actor here.
+ */
+async function showLootPreview(actor, containerType, items, currency, prevLocked = {}, stats = null) {
+  const L = (k, fb) => game.i18n.localize(k) || fb;
+  const esc = foundry.utils.escapeHTML;
+  const list = Array.isArray(items) ? items : [];
+
+  // Items carried over from a previous roll stay locked.
+  const lockedIdx = new Set();
+  const prevKeys = new Set((prevLocked.items || []).map(r => sourceUuid(r) || r?.name));
+  list.forEach((raw, i) => {
+    const key = sourceUuid(raw) || raw?.name;
+    if (key && prevKeys.has(key)) lockedIdx.add(i);
+  });
+  let currencyLocked = !!prevLocked.currency;
+
+  const itemRows = list.map((raw, i) => {
+    const qty = Number(raw?.system?.quantity) || 1;
+    const img = raw?.img || "icons/svg/item-bag.svg";
+    const uuid = sourceUuid(raw);
+    const locked = lockedIdx.has(i);
+    const nameCell = uuid
+      ? `<a class="content-link" draggable="true" data-uuid="${esc(uuid)}">${esc(raw?.name ?? "?")}</a>`
+      : `<span>${esc(raw?.name ?? "?")}</span>`;
+    return `
+      <li class="pf2e-autoloot-row${locked ? " is-locked" : ""}" data-idx="${i}">
+        <img class="pf2e-autoloot-thumb" src="${esc(img)}" width="24" height="24" />
+        <span class="pf2e-autoloot-name">${nameCell}</span>
+        <span class="pf2e-autoloot-qty">&times;${qty}</span>
+        <a class="pf2e-autoloot-lock" data-idx="${i}"
+           data-tooltip="${esc(L("pf2e-autoloot.preview.lockTip", "Keep this item on reroll"))}">
+          <i class="fas ${locked ? "fa-lock" : "fa-lock-open"}"></i>
+        </a>
+      </li>`;
+  }).join("");
+
+  const coinRows = _previewCoinRows(currency);
+  const coinHtml = coinRows.map(r => `
+      <li class="pf2e-autoloot-row">
+        <img class="pf2e-autoloot-thumb" src="${esc(currencyIcon(r.key))}" width="24" height="24" />
+        <span class="pf2e-autoloot-name">${esc(L(`pf2e-autoloot.currency.${r.key}`, r.key.toUpperCase()))}</span>
+        <span class="pf2e-autoloot-qty">&times;${r.value}</span>
+      </li>`).join("");
+
+  const emptyMsg = (!itemRows && !coinHtml)
+    ? `<p class="notes">${esc(L("pf2e-autoloot.preview.empty", "This loot came out empty."))}</p>`
+    : "";
+
+  const unit = IS_SF2E ? L("pf2e-autoloot.currency.credits", "Credits") : "gp";
+  const num = (n) => {
+    const v = Number(n) || 0;
+    return (Math.round(v * 100) / 100).toLocaleString(game.i18n?.lang || "en");
+  };
+  const statRow = (labelKey, fallback, value) => `
+        <tr>
+          <th>${esc(L(labelKey, fallback))}</th>
+          <td>${esc(num(value))} ${esc(unit)}</td>
+        </tr>`;
+
+  const statsHtml = stats ? `
+      <table class="pf2e-autoloot-stats">
+        <tbody>
+          ${statRow("pf2e-autoloot.preview.statMax", "Max budget for level", stats.maxBudget)}
+          ${statRow("pf2e-autoloot.preview.statBudget", "Container budget", stats.budget)}
+          ${statRow("pf2e-autoloot.preview.statLocked", "Locked budget", stats.lockedValue)}
+          ${statRow("pf2e-autoloot.preview.statItems", "Spent on items", stats.itemsValue)}
+          ${statRow("pf2e-autoloot.preview.statCurrency", "Currency generated", stats.currencyValue)}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th>${esc(L("pf2e-autoloot.preview.statTotal", "Total value"))}</th>
+            <td>${esc(num((Number(stats.itemsValue) || 0) + (Number(stats.currencyValue) || 0)))} ${esc(unit)}</td>
+          </tr>
+        </tfoot>
+      </table>` : "";
+
+  const content = `
+    <div class="pf2e-autoloot-preview">
+      ${statsHtml}
+      ${emptyMsg}
+      ${itemRows ? `
+        <h4>${esc(L("pf2e-autoloot.preview.items", "Items"))}</h4>
+        <ul class="pf2e-autoloot-list" data-list="items">${itemRows}</ul>` : ""}
+      ${coinHtml ? `
+        <h4 class="pf2e-autoloot-coins-header">
+          <span>${esc(L("pf2e-autoloot.preview.currency", "Currency"))}</span>
+          <a class="pf2e-autoloot-lock" data-currency-lock
+             data-tooltip="${esc(L("pf2e-autoloot.preview.lockCoinTip", "Keep this currency on reroll"))}">
+            <i class="fas ${currencyLocked ? "fa-lock" : "fa-lock-open"}"></i>
+          </a>
+        </h4>
+        <ul class="pf2e-autoloot-list${currencyLocked ? " is-locked" : ""}" data-list="coins">${coinHtml}</ul>` : ""}
+    </div>`;
+
+  const DV2 = foundry.applications.api.DialogV2;
+
+  const action = await DV2.wait({
+    window: {
+      title: `${L("pf2e-autoloot.preview.title", "Loot preview")} — ${actor?.name ?? ""}`,
+      icon: "fas fa-box-open"
+    },
+    position: { width: 480 },
+    classes: ["pf2e-autoloot-preview-dialog"],
+    content,
+    buttons: [
+      { action: "accept", icon: "fas fa-check", label: L("pf2e-autoloot.preview.accept", "Apply"), default: true, callback: () => "accept" },
+      { action: "reroll", icon: "fas fa-dice", label: L("pf2e-autoloot.preview.reroll", "Reroll"), callback: () => "reroll" },
+      { action: "cancel", icon: "fas fa-times", label: L("pf2e-autoloot.preview.cancel", "Cancel"), callback: () => "cancel" }
+    ],
+    close: () => "cancel",
+    render: (_event, dialog) => {
+      const root = dialog?.element;
+      if (!root) return;
+
+      // Padlocks
+      root.querySelectorAll(".pf2e-autoloot-lock").forEach(btn => {
+        btn.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          if (btn.hasAttribute("data-currency-lock")) {
+            currencyLocked = !currencyLocked;
+            btn.querySelector("i")?.setAttribute("class", `fas ${currencyLocked ? "fa-lock" : "fa-lock-open"}`);
+            root.querySelector('[data-list="coins"]')?.classList.toggle("is-locked", currencyLocked);
+            return;
+          }
+
+          const idx = Number(btn.dataset.idx);
+          if (!Number.isFinite(idx)) return;
+          const nowLocked = !lockedIdx.has(idx);
+          if (nowLocked) lockedIdx.add(idx); else lockedIdx.delete(idx);
+          btn.querySelector("i")?.setAttribute("class", `fas ${nowLocked ? "fa-lock" : "fa-lock-open"}`);
+          root.querySelector(`.pf2e-autoloot-row[data-idx="${idx}"]`)?.classList.toggle("is-locked", nowLocked);
+        });
+      });
+
+      // Open the real item sheet from the compendium entry
+      root.querySelectorAll("a.content-link[data-uuid]").forEach(link => {
+        link.addEventListener("click", async (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          try {
+            const doc = await fromUuid(link.dataset.uuid);
+            doc?.sheet?.render(true);
+          } catch (e) {
+            console.warn(`${MODULE} could not open item sheet`, e);
+          }
+        });
+      });
+    }
+  });
+
+  return {
+    action: action ?? "cancel",
+    lockedItems: [...lockedIdx].sort((a, b) => a - b).map(i => list[i]).filter(Boolean),
+    lockedCurrency: currencyLocked ? foundry.utils.deepClone(currency || {}) : null
+  };
+}
+
 /* -------------- Core generation -------------- */
 async function generateFor(actor, containerType, opts = {}) {
 
@@ -1568,7 +1894,7 @@ async function generateFor(actor, containerType, opts = {}) {
   try {
     const already = actor.getFlag(MODULE, "rolled");
     if (already && !opts.ignoreRolled) return;
-    if ((actor.items?.size ?? 0) || actorHasAnyCurrency(actor)) {
+    if (!opts.ignoreRolled && ((actor.items?.size ?? 0) || actorHasAnyCurrency(actor))) {
       await actor.setFlag(MODULE, "rolled", true);
       return;
     }
@@ -1581,8 +1907,12 @@ async function generateFor(actor, containerType, opts = {}) {
       emptyProb = Number(game.settings.get(MODULE, `empty-${containerType}`)) || 0;
     }
 
+    // Anything the GM padlocked must survive, so the empty-container roll
+    // is skipped entirely when a lock is in play.
+    const hasLocks = !!(opts.lockedItems?.length) || !!(opts.lockedCurrency && hasAnyCurrencyObj(opts.lockedCurrency));
+
     const rollEmpty = Math.random() * 100;
-    if (!opts.ignoreEmpty && rollEmpty < emptyProb) {
+    if (!opts.ignoreEmpty && !hasLocks && rollEmpty < emptyProb) {
       await actor.setFlag(MODULE, "rolled", true);
       await actor.setFlag(MODULE, "empty", true);
       ui.notifications?.warn(game.i18n.localize("pf2e-autoloot.msg.lootEmpty") || "This loot is empty.");
@@ -1600,7 +1930,10 @@ async function generateFor(actor, containerType, opts = {}) {
       const stashOffset = Number(game.settings.get(MODULE, "stashLevelOffset") ?? DEFAULTS.stashLevelOffset);
       const partyLevel = getAveragePartyLevel();
       const stashMaxLevel = Math.max(0, partyLevel + stashOffset);
-      await generateStash(actor, stashMaxLevel);
+      const stashResult = await generateStash(actor, stashMaxLevel, opts);
+      if (stashResult?.cancelled) return;
+      if (stashResult?.reroll) return stashResult;
+
       await actor.setFlag(MODULE, "rolled", true);
       await actor.setFlag(MODULE, "containerType", containerType);
       await actor.setFlag(MODULE, "rollTime", Date.now());
@@ -1609,8 +1942,34 @@ async function generateFor(actor, containerType, opts = {}) {
 
     // ---- POUCH: coins only ----
     if (containerType === "pouch") {
-      const coinBudgetGP = Math.max(0, Math.floor(budget.gp || 0));
-      const coinsObj = currencyFromBudgetGP(coinBudgetGP);
+      let coinsObj;
+      const pouchCoinBudget = Math.max(0, Number(budget.gp) || 0);
+      let pouchRolled = 0;
+      if (opts.lockedCurrency && hasAnyCurrencyObj(opts.lockedCurrency)) {
+        coinsObj = foundry.utils.deepClone(opts.lockedCurrency);
+        pouchRolled = currencyValueGP(coinsObj);
+      } else {
+        pouchRolled = rollCoinAmount(pouchCoinBudget, partyLevel);
+        coinsObj = currencyFromBudgetGP(pouchRolled);
+      }
+
+      if (shouldPreview(opts)) {
+        const res = await showLootPreview(actor, containerType, [], coinsObj, {
+          items: opts.lockedItems || [],
+          currency: opts.lockedCurrency || null
+        }, {
+          maxBudget: getContainerBudgetMax(containerType, partyLevel),
+          budget: initialBudgetGP,
+          lockedValue: (opts.lockedCurrency && hasAnyCurrencyObj(opts.lockedCurrency)) ? currencyValueGP(opts.lockedCurrency) : 0,
+          itemsValue: 0,
+          currencyValue: currencyValueGP(coinsObj)
+        });
+        if (res.action === "cancel") return;
+        if (res.action === "reroll") {
+          return { reroll: true, lockedItems: res.lockedItems, lockedCurrency: res.lockedCurrency };
+        }
+        if (typeof opts.onBeforeApply === "function") await opts.onBeforeApply();
+      }
 
       await clearAllCurrency(actor);
       const ok = await addCurrencyToActor(actor, coinsObj);
@@ -1688,7 +2047,14 @@ async function generateFor(actor, containerType, opts = {}) {
       for (let i = 0; i < Math.max(1, Math.round(w)); i++) weightedIds.push(e._id);
     }
 
-    const toCreate = [];
+    // Items the GM padlocked in the preview survive the reroll untouched:
+    // they keep their slot and their cost comes off the budget.
+    const lockedItems = Array.isArray(opts.lockedItems) ? opts.lockedItems : [];
+    const toCreate = lockedItems.map(r => foundry.utils.deepClone(r));
+    for (const raw of toCreate) {
+      const q = Math.max(1, Number(raw?.system?.quantity) || 1);
+      budget.gp = Math.max(0, budget.gp - Math.floor(priceToGP(raw) * q));
+    }
     let registry = uniqueRegistry();
 
     if (containerType === "pouch") {
@@ -1725,7 +2091,12 @@ async function generateFor(actor, containerType, opts = {}) {
 
       const maxPerItem = Math.max(1, Number(game.settings.get(MODULE, "maxStack") ?? DEFAULTS.maxStack));
       const banned = new Set();
-      let remainingSlots = Math.min(typeCount, candidates.length);
+      // Locked items already occupy their slot; never roll them a second time.
+      for (const raw of toCreate) {
+        const id = raw?.flags?.[MODULE]?.source?.id;
+        if (id) banned.add(id);
+      }
+      let remainingSlots = Math.max(0, Math.min(typeCount, candidates.length) - toCreate.length);
       let guard = 600;
 
       const quotas = getQuotas(containerType, typeCount);
@@ -1781,14 +2152,16 @@ async function generateFor(actor, containerType, opts = {}) {
         const affordable = pairs.filter(x => !banned.has(x.e._id) && x.p <= budget.gp);
         if (!affordable.length) break;
 
-        let perSlotCap = Math.max(1, Math.floor(budget.gp / remainingSlots));
-        let cap = Math.min(Math.floor(budget.gp * 0.60), perSlotCap);
+        // Caps are kept at copper precision: flooring them to whole gp made
+        // every cap collapse to 0 on small budgets.
+        let perSlotCap = Math.max(0.01, budget.gp / remainingSlots);
+        let cap = Math.min(budget.gp * 0.60, perSlotCap);
 
         let pool = affordable.filter(x => x.p <= cap);
         let relaxSteps = 0;
         while (!pool.length && relaxSteps < 5) {
-          cap = relaxSteps < 3 ? Math.min(budget.gp, Math.floor(cap * (relaxSteps === 0 ? 1.5 : relaxSteps === 1 ? 2 : 3)))
-            : (relaxSteps === 3 ? Math.floor(budget.gp * 0.60) : budget.gp);
+          cap = relaxSteps < 3 ? Math.min(budget.gp, cap * (relaxSteps === 0 ? 1.5 : relaxSteps === 1 ? 2 : 3))
+            : (relaxSteps === 3 ? budget.gp * 0.60 : budget.gp);
           pool = affordable.filter(x => x.p <= cap);
           relaxSteps += 1;
         }
@@ -1800,6 +2173,7 @@ async function generateFor(actor, containerType, opts = {}) {
         const doc = await getDocFrom(entry);
         if (!doc) { banned.add(entry._id); continue; }
         const raw = doc.toObject(); delete raw._id;
+        stampSource(raw, entry);
 
         const unitRaw = priceToGP(raw);
         if (unitRaw <= 0 || unitRaw > budget.gp) { banned.add(entry._id); continue; }
@@ -1835,7 +2209,10 @@ async function generateFor(actor, containerType, opts = {}) {
         raw.system = raw.system || {};
         raw.system.quantity = qty;
 
-        budget.gp -= Math.floor(unit * qty);
+        // Subtract the real cost at copper precision. Flooring to whole gp
+        // made anything under 1 gp effectively free, so cheap stacks drained
+        // no budget and the loop kept filling slots past the limit.
+        budget.gp = Math.max(0, Math.round((budget.gp - unit * qty) * 100) / 100);
         toCreate.push(raw);
 
         used[kind] += 1;
@@ -1849,22 +2226,39 @@ async function generateFor(actor, containerType, opts = {}) {
     const allowCoins = isCustom ? !!CC()?.getAllowedCategoriesFor?.(containerType)?.includes("coins") : false;
 
     let pendingCurrency = {};
-    if (containerType === "chest" || (isCustom && allowCoins)) {
-      const partySize = getPartySize();
-      const perAddPC = PF2E_CURRENCY_PER_ADDITIONAL_PC[Math.max(1, Math.min(20, partyLevel))] || 0;
-      const extraPCs = Math.max(0, partySize - 4);
-
-      let frac = game.settings.get(MODULE, "budgetFraction");
-      if (typeof frac === "string") frac = frac.trim().replace(",", ".").replace("%", "");
-      frac = Number(frac);
-      if (!Number.isFinite(frac) || frac <= 0) frac = DEFAULTS.budgetFraction;
-      if (frac > 1) frac = frac > 100 ? 1 : frac / 100;
-
-      const seedCoins = Math.floor(perAddPC * extraPCs * frac * (IS_SF2E ? 10 : 1));
-
-      pendingCurrency = mergeCurrency(pendingCurrency, currencyFromBudgetGP(seedCoins));
-      pendingCurrency = mergeCurrency(pendingCurrency, currencyFromBudgetGP(Math.floor(Math.max(0, budget.gp || 0))));
+    let coinBudgetGP = 0;
+    let coinRolledGP = 0;
+    if (opts.lockedCurrency && hasAnyCurrencyObj(opts.lockedCurrency)) {
+      pendingCurrency = foundry.utils.deepClone(opts.lockedCurrency);
       budget.gp = 0;
+    } else if (containerType === "chest" || (isCustom && allowCoins)) {
+      const seedCoins = additionalPCBudget(partyLevel);
+
+      coinBudgetGP = seedCoins + Math.max(0, Number(budget.gp) || 0);
+      coinRolledGP = rollCoinAmount(coinBudgetGP, partyLevel);
+      pendingCurrency = mergeCurrency(pendingCurrency, currencyFromBudgetGP(coinRolledGP));
+      budget.gp = 0;
+    }
+
+    if (shouldPreview(opts)) {
+      const lockedValue = itemsValueGP(opts.lockedItems || [])
+        + ((opts.lockedCurrency && hasAnyCurrencyObj(opts.lockedCurrency)) ? currencyValueGP(opts.lockedCurrency) : 0);
+
+      const res = await showLootPreview(actor, containerType, toCreate, pendingCurrency, {
+        items: opts.lockedItems || [],
+        currency: opts.lockedCurrency || null
+      }, {
+        maxBudget: getContainerBudgetMax(containerType, partyLevel),
+        budget: initialBudgetGP,
+        lockedValue,
+        itemsValue: itemsValueGP(toCreate),
+        currencyValue: currencyValueGP(pendingCurrency)
+      });
+      if (res.action === "cancel") return;
+      if (res.action === "reroll") {
+        return { reroll: true, lockedItems: res.lockedItems, lockedCurrency: res.lockedCurrency };
+      }
+      if (typeof opts.onBeforeApply === "function") await opts.onBeforeApply();
     }
 
     let currencyAdded = false;
@@ -1950,23 +2344,6 @@ async function promptContainerType() {
 async function rerollFor(actor, forcedType = null, { promptIfUnknown = false, ignoreName = false } = {}) {
   ManualRoll.add(actor);
   try {
-    const uniquesToUnregister = actor.items.filter(i => i?.flags?.[MODULE]?.source?.unique);
-    for (const it of uniquesToUnregister) {
-      const key = uniqueKeyFromItem(it);
-      if (key) uniqueRegistryDelete(key);
-    }
-
-    if (actor.items.size) {
-      await actor.deleteEmbeddedDocuments("Item", actor.items.map(i => i.id));
-    }
-
-    if (actorHasAnyCurrency(actor)) {
-      await clearAllCurrency(actor);
-    }
-
-    await actor.unsetFlag(MODULE, "rolled");
-    await actor.unsetFlag(MODULE, "empty");
-
     let type = forcedType;
     if (!type) {
       if (!ignoreName) {
@@ -1977,10 +2354,51 @@ async function rerollFor(actor, forcedType = null, { promptIfUnknown = false, ig
     }
     if (!type) return;
 
-    await generateFor(actor, type, { ignoreEmpty: false, ignoreRolled: true });
+    // With preview enabled the old contents are only wiped once the GM accepts,
+    // so cancelling never leaves the container empty.
+    const usePreview = !!game.settings.get(MODULE, "previewBeforeApply");
+
+    const wipeExisting = async () => {
+      const uniquesToUnregister = actor.items.filter(i => i?.flags?.[MODULE]?.source?.unique);
+      for (const it of uniquesToUnregister) {
+        const key = uniqueKeyFromItem(it);
+        if (key) uniqueRegistryDelete(key);
+      }
+
+      if (actor.items.size) {
+        await actor.deleteEmbeddedDocuments("Item", actor.items.map(i => i.id));
+      }
+
+      if (actorHasAnyCurrency(actor)) {
+        await clearAllCurrency(actor);
+      }
+
+      await actor.unsetFlag(MODULE, "rolled");
+      await actor.unsetFlag(MODULE, "empty");
+    };
+
+    if (!usePreview) await wipeExisting();
+
+    let lockedItems = [];
+    let lockedCurrency = null;
+    let guard = 50;
+
+    while (guard-- > 0) {
+      const result = await generateFor(actor, type, {
+        ignoreEmpty: false,
+        ignoreRolled: true,
+        preview: true,
+        lockedItems,
+        lockedCurrency,
+        onBeforeApply: usePreview ? wipeExisting : null
+      });
+
+      if (!result?.reroll) break;
+      lockedItems = result.lockedItems || [];
+      lockedCurrency = result.lockedCurrency || null;
+    }
   } finally {
     ManualRoll.delete(actor);
-    await clearAllCurrency(actor);
   }
 }
 
