@@ -79,7 +79,8 @@ const KCTG_FOLDER_FALLBACK = {
   "DNNb5KsoQ5uyIkz4": "Adornments & Luxury",
   "BRJol1dheZH5MuAT": "General Trade",
   "CkbhqUXNtPTwfDnl": "Seasonal & Themed",
-  "ZhvgovzjOp3DAVvp": "Antiquities & Relics"
+  "ZhvgovzjOp3DAVvp": "Antiquities & Relics",
+  "BRJol1dheZH5MuAT": "General Trade"
 };
 
 const Cache = {
