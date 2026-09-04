@@ -106,7 +106,7 @@ const CURRENCY_KEYS = ["pp", "gp", "sp", "cp", "credits", "upb"];
  * Shares are fractions of the coin budget and add up to 1.
  */
 const COIN_VALUE_SHARES = {
-  value:    { pp: 0.72, gp: 0.26, sp: 0.02, cp: 0.00 },
+  value: { pp: 0.72, gp: 0.26, sp: 0.02, cp: 0.00 },
   balanced: { pp: 0.10, gp: 0.66, sp: 0.10, cp: 0.14 },
   quantity: { pp: 0.00, gp: 0.26, sp: 0.33, cp: 0.41 }
 };
@@ -741,7 +741,11 @@ async function generateStash(actor, partyLevel, opts = {}) {
   // Monedas (nuevo sistema PF2E/SF2E: currency en el actor, no ítems de "treasure")
   let currencyAdded = false;
 
-  const stashCoinBudget = getContainerBudget("stash", partyLevel) + additionalPCBudget(partyLevel, false);
+  // Total Value covers the whole haul, items included, so the coins are only
+  // what is left after the fixed item selection has been paid for.
+  const stashAllowance = getContainerBudget("stash", partyLevel) + additionalPCBudget(partyLevel, false);
+  const stashItemsValue = itemsValueGP(toCreate);
+  const stashCoinBudget = Math.max(0, round2(stashAllowance - stashItemsValue));
   const specCurrency = rollCoinAmount(stashCoinBudget, partyLevel);
 
   const stashCurrency = (opts.lockedCurrency && hasAnyCurrencyObj(opts.lockedCurrency))
@@ -757,9 +761,9 @@ async function generateStash(actor, partyLevel, opts = {}) {
       currency: opts.lockedCurrency || null
     }, {
       maxBudget: getContainerBudgetMax("stash", partyLevel),
-      budget: stashCoinBudget + itemsValueGP(toCreate),
+      budget: stashAllowance,
       lockedValue,
-      itemsValue: itemsValueGP(toCreate),
+      itemsValue: stashItemsValue,
       currencyValue: currencyValueGP(stashCurrency)
     });
     if (res.action === "cancel") return { cancelled: true };
