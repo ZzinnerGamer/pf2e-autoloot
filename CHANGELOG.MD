@@ -1,4 +1,69 @@
-# PF2e Autoloot
+# PF2e Autoloot [2.5.0]
+
+## New: preview your loot before it lands
+
+Turn on **Preview loot before applying** and a window now appears whenever you roll a container by hand. It shows everything that was generated and gives you three choices: apply it, roll again, or cancel. Nothing is written to the container until you say yes, so cancelling leaves it exactly as it was.
+
+The preview shows:
+
+- A small table at the top with the budget: the most the container could hold at   this level, what it actually got, what was spent on items, and what the coins   are worth.
+- Every item with its picture and quantity. Click a name to open its full sheet.
+- The coins, using the currency icons from the game system.
+
+This does not appear when fully automatic looting is switched on, since there is nobody watching to approve it. The setting is greyed out in the options window while automatic mode is active.
+
+### New: padlocks
+
+Every item in the preview has a small padlock, and the coins have one of their own. Lock what you like, press reroll, and those things stay exactly as they are while everything else is rolled again. What you keep is paid for out of the next roll's budget, so the container never ends up richer than it should be.
+
+If anything is locked, the chance of the container coming out empty is skipped entirely — you asked to keep something, so you keep it.
+
+### Fixed: containers gave out too much
+
+Anything costing less than a gold piece was treated as free. A chest with a one gold budget could quietly end up holding two or three gold worth of arrows, tools and trinkets. Cheap goods now cost what they cost, and containers stay inside their budget.
+
+Small amounts of money were also being rounded away in several other places. Everything now counts down to the copper piece.
+
+## Fixed: coins were far too predictable
+
+A level one pouch produced exactly 100 copper pieces every single time. Larger purses were nearly as repetitive — the same handful of results over and over.
+
+Coins now work the way you would expect. First there is a hidden roll for how much money is actually in there: at least half the budget up to level 10, at least three quarters above that, never more than the full amount. Then that money is split into denominations according to your preference.
+
+## Fixed: rerolling threw away the coins
+
+Rolling a container again by hand generated its money and then immediately deleted it. Items survived, coins did not.
+
+## Fixed: large parties got too much
+
+The extra treasure for parties of more than four was being handed out at full value no matter how low you had set the budget percentage. A party of six could receive hundreds of gold more than intended.
+
+## Changed: each container has its own treasure table
+
+Containers used to share one budget with a multiplier bolted on top. Each type
+now reads its own column of the Party Treasure by Level table:
+
+| Container       | Draws from                 |
+| --------------- | -------------------------- |
+| Pouch           | Currency per Additional PC |
+| Crate, barrel   | Currency per Additional PC |
+| Chest           | Party Currency             |
+| Stash           | Total Value                |
+
+<img width="1100" height="639" alt="image" src="https://github.com/user-attachments/assets/2c508cf3-a1f4-418e-aad3-54e41a734f34" />
+
+Pouches/Crates/Barrels - Cyan
+Chests - Lime
+Stashes - Red
+
+Crates and barrels are meant to be scenery, so they sit on the smallest column.
+Stashes are the real prize and are deliberately left alone by the budget percentage — a stash is worth what the table says, whatever your settings.
+
+## Also in this release
+
+- Generated items now remember which compendium they came from, which fixes a quiet problem where unique items were never released back into circulation after a reroll and could stop appearing altogether.
+
+# PF2e Autoloot [2.4.1]
 
 * update French translation by @rectulo in https://github.com/ZzinnerGamer/pf2e-autoloot/pull/17
 * Update Polish translate by @Lioheart in https://github.com/ZzinnerGamer/pf2e-autoloot/pull/18
