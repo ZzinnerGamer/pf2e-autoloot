@@ -18,6 +18,11 @@ Every item in the preview has a small padlock, and the coins have one of their o
 
 If anything is locked, the chance of the container coming out empty is skipped entirely — you asked to keep something, so you keep it.
 
+
+<img width="473" height="1086" alt="image" src="https://github.com/user-attachments/assets/dbce897d-6e96-4ff6-a15a-3c7d5def4f75" /> 
+Padlocked items stays on reroll.
+<img width="473" height="1210" alt="image" src="https://github.com/user-attachments/assets/fa1cc735-21a5-4933-a938-6d59c3285dd6" />
+
 ### Fixed: containers gave out too much
 
 Anything costing less than a gold piece was treated as free. A chest with a one gold budget could quietly end up holding two or three gold worth of arrows, tools and trinkets. Cheap goods now cost what they cost, and containers stay inside their budget.
