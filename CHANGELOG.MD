@@ -1,3 +1,7 @@
+# PF2e Autoloot [2.5.1]
+
+Fix Total Value excluded item value for the calculation OOPS
+
 # PF2e Autoloot [2.5.0]
 
 ## New: preview your loot before it lands
